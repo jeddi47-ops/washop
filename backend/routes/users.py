@@ -64,12 +64,17 @@ async def get_user(user_id: str, user=Depends(role_required("admin"))):
     return success_response(data=target)
 
 
+from pydantic import BaseModel as UserBaseModel
+
+class UserStatusUpdate(UserBaseModel):
+    status: UserStatus
+
 @router.put("/{user_id}/status")
-async def update_user_status(user_id: str, status: UserStatus, user=Depends(role_required("admin"))):
+async def update_user_status(user_id: str, data: UserStatusUpdate, user=Depends(role_required("admin"))):
     try:
         result = await db.users.update_one(
             {"_id": ObjectId(user_id), "deleted_at": None},
-            {"$set": {"status": status.value}}
+            {"$set": {"status": data.status.value}}
         )
     except Exception:
         raise HTTPException(status_code=400, detail="ID utilisateur invalide")
@@ -82,11 +87,11 @@ async def update_user_status(user_id: str, status: UserStatus, user=Depends(role
         "action_type": "update_user_status",
         "target_type": "user",
         "target_id": user_id,
-        "description": f"Statut changé en {status.value}",
+        "description": f"Statut changé en {data.status.value}",
         "created_at": utc_now()
     })
 
-    return success_response(message=f"Statut utilisateur changé en {status.value}")
+    return success_response(message=f"Statut utilisateur changé en {data.status.value}")
 
 
 @router.delete("/{user_id}")

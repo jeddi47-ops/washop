@@ -152,8 +152,13 @@ async def mark_whatsapp_redirect(order_id: str, user=Depends(get_current_user)):
     return success_response(message="Commande marquée comme redirigée vers WhatsApp")
 
 
+from pydantic import BaseModel
+
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
+
 @router.put("/{order_id}/status")
-async def update_order_status(order_id: str, status: OrderStatus, user=Depends(get_current_user)):
+async def update_order_status(order_id: str, data: OrderStatusUpdate, user=Depends(get_current_user)):
     """Update order status (vendor or admin)."""
     try:
         order = await db.orders.find_one({"_id": ObjectId(order_id)})
@@ -169,18 +174,18 @@ async def update_order_status(order_id: str, status: OrderStatus, user=Depends(g
     elif user["role"] not in ("admin",):
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
-    await db.orders.update_one({"_id": ObjectId(order_id)}, {"$set": {"status": status.value}})
+    await db.orders.update_one({"_id": ObjectId(order_id)}, {"$set": {"status": data.status.value}})
 
     # Notify client
     await db.notifications.insert_one({
         "user_id": order["client_id"],
-        "message": f"Votre commande a été mise à jour: {status.value}",
+        "message": f"Votre commande a été mise à jour: {data.status.value}",
         "type": "order_status_update",
         "is_read": False,
         "created_at": utc_now()
     })
 
-    return success_response(message=f"Statut de commande mis à jour: {status.value}")
+    return success_response(message=f"Statut de commande mis à jour: {data.status.value}")
 
 
 @router.get("/me")

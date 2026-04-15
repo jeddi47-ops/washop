@@ -117,8 +117,13 @@ async def add_claim_message(claim_id: str, data: ClaimMessageCreate, user=Depend
     return success_response(data=msg_doc, message="Message ajouté")
 
 
+from pydantic import BaseModel as ClaimBaseModel
+
+class ClaimAssignRequest(ClaimBaseModel):
+    employee_id: str
+
 @router.put("/{claim_id}/assign")
-async def assign_claim(claim_id: str, employee_id: str, user=Depends(role_required("admin"))):
+async def assign_claim(claim_id: str, data: ClaimAssignRequest, user=Depends(role_required("admin"))):
     try:
         claim = await db.claims.find_one({"_id": ObjectId(claim_id)})
     except Exception:
@@ -128,7 +133,7 @@ async def assign_claim(claim_id: str, employee_id: str, user=Depends(role_requir
 
     # Validate employee
     try:
-        employee = await db.users.find_one({"_id": ObjectId(employee_id), "role": "employee", "deleted_at": None})
+        employee = await db.users.find_one({"_id": ObjectId(data.employee_id), "role": "employee", "deleted_at": None})
     except Exception:
         raise HTTPException(status_code=400, detail="ID employé invalide")
     if not employee:
@@ -136,12 +141,12 @@ async def assign_claim(claim_id: str, employee_id: str, user=Depends(role_requir
 
     await db.claims.update_one(
         {"_id": ObjectId(claim_id)},
-        {"$set": {"assigned_to": employee_id, "status": "in_progress"}}
+        {"$set": {"assigned_to": data.employee_id, "status": "in_progress"}}
     )
 
     # Notify employee
     await db.notifications.insert_one({
-        "user_id": employee_id,
+        "user_id": data.employee_id,
         "message": f"Réclamation assignée: {claim.get('subject', '')}",
         "type": "claim_assigned",
         "is_read": False,
@@ -151,8 +156,11 @@ async def assign_claim(claim_id: str, employee_id: str, user=Depends(role_requir
     return success_response(message="Réclamation assignée")
 
 
+class ClaimStatusUpdate(ClaimBaseModel):
+    status: ClaimStatus
+
 @router.put("/{claim_id}/status")
-async def update_claim_status(claim_id: str, status: ClaimStatus, user=Depends(role_required("admin", "employee"))):
+async def update_claim_status(claim_id: str, data: ClaimStatusUpdate, user=Depends(role_required("admin", "employee"))):
     try:
         claim = await db.claims.find_one({"_id": ObjectId(claim_id)})
     except Exception:
@@ -163,18 +171,18 @@ async def update_claim_status(claim_id: str, status: ClaimStatus, user=Depends(r
     if user["role"] == "employee" and claim.get("assigned_to") != user["id"]:
         raise HTTPException(status_code=403, detail="Cette réclamation ne vous est pas assignée")
 
-    await db.claims.update_one({"_id": ObjectId(claim_id)}, {"$set": {"status": status.value}})
+    await db.claims.update_one({"_id": ObjectId(claim_id)}, {"$set": {"status": data.status.value}})
 
     # Notify client
     await db.notifications.insert_one({
         "user_id": claim["client_id"],
-        "message": f"Votre réclamation '{claim.get('subject', '')}' est maintenant: {status.value}",
+        "message": f"Votre réclamation '{claim.get('subject', '')}' est maintenant: {data.status.value}",
         "type": "claim_status_update",
         "is_read": False,
         "created_at": utc_now()
     })
 
-    return success_response(message=f"Statut mis à jour: {status.value}")
+    return success_response(message=f"Statut mis à jour: {data.status.value}")
 
 
 @router.get("")

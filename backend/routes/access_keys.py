@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from bson import ObjectId
-from datetime import timedelta
+from datetime import timedelta, timezone
 import uuid
 import secrets
 import string
@@ -93,6 +93,10 @@ async def activate_key(data: AccessKeyActivate, user=Depends(get_current_user)):
     current_sub = vendor.get("subscription_type")
     current_expires = vendor.get("subscription_expires_at")
 
+    # Ensure timezone-aware comparison
+    if current_expires and current_expires.tzinfo is None:
+        current_expires = current_expires.replace(tzinfo=timezone.utc)
+
     # Determine action
     action = "new"
     type_hierarchy = {"basic": 1, "premium": 2, "extra": 3}
@@ -110,7 +114,10 @@ async def activate_key(data: AccessKeyActivate, user=Depends(get_current_user)):
     if action == "extension" and current_expires and current_expires > now:
         # Extend from current expiry
         new_expires = current_expires + timedelta(days=duration_days)
-        new_started = vendor.get("subscription_started_at", now)
+        sub_started = vendor.get("subscription_started_at")
+        if sub_started and sub_started.tzinfo is None:
+            sub_started = sub_started.replace(tzinfo=timezone.utc)
+        new_started = sub_started or now
     else:
         new_started = now
         new_expires = now + timedelta(days=duration_days)

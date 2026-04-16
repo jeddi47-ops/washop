@@ -184,13 +184,8 @@ async def forgot_password(data: ForgotPasswordRequest):
     reset_link = f"/reset-password?token={token}"
     logger.info(f"Password reset link for {data.email}: {reset_link}")
 
-    # Send email (mocked if SendGrid not configured)
-    from utils.email_service import send_email
-    await send_email(
-        data.email,
-        "Réinitialisation de mot de passe Washop",
-        f"<p>Cliquez sur ce lien pour réinitialiser votre mot de passe: <a href='{reset_link}'>{reset_link}</a></p>"
-    )
+    from utils.email_service import send_password_reset
+    await send_password_reset(data.email, reset_link)
 
     return success_response(message="Si cet email existe, un lien de réinitialisation a été envoyé")
 

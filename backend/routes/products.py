@@ -293,20 +293,34 @@ async def upload_product_images(
         )
 
     uploaded = []
+    uploaded_cloudinary_ids = []  # Track for rollback
     for i, file in enumerate(files):
         content = await file.read()
         is_valid, err_msg = validate_image_file(file.content_type, len(content))
         if not is_valid:
+            # Rollback already uploaded images
+            if uploaded_cloudinary_ids:
+                delete_images(uploaded_cloudinary_ids)
             raise HTTPException(status_code=400, detail=err_msg)
+
+        if not is_cloudinary_configured():
+            raise HTTPException(
+                status_code=503,
+                detail="Cloudinary non configure. Ajoutez CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY et CLOUDINARY_API_SECRET dans .env"
+            )
 
         result = await upload_image(content, folder=f"washop/products/{product_id}")
 
-        if result.get("error") and not result.get("cloudinary_url"):
-            # If Cloudinary not configured, store placeholder
-            result = {
-                "cloudinary_url": f"/placeholder/product_{product_id}_{i}.jpg",
-                "cloudinary_public_id": f"placeholder_{product_id}_{i}"
-            }
+        if result.get("error"):
+            # Upload failed — rollback all previously uploaded images in this batch
+            if uploaded_cloudinary_ids:
+                delete_images(uploaded_cloudinary_ids)
+            raise HTTPException(
+                status_code=502,
+                detail=f"Echec de l'upload Cloudinary: {result['error']}"
+            )
+
+        uploaded_cloudinary_ids.append(result["cloudinary_public_id"])
 
         img_doc = {
             "id": str(uuid.uuid4()),
@@ -316,7 +330,16 @@ async def upload_product_images(
             "position": existing_count + i,
             "created_at": utc_now()
         }
-        await db.product_images.insert_one(img_doc)
+        try:
+            await db.product_images.insert_one(img_doc)
+        except Exception as e:
+            # DB insert failed — rollback Cloudinary upload
+            delete_image(result["cloudinary_public_id"])
+            uploaded_cloudinary_ids.remove(result["cloudinary_public_id"])
+            raise HTTPException(
+                status_code=500,
+                detail=f"Echec de la sauvegarde en base de donnees. Image Cloudinary annulee."
+            )
         uploaded.append({"cloudinary_url": result["cloudinary_url"], "position": existing_count + i})
 
     return success_response(data=uploaded, message=f"{len(uploaded)} image(s) uploadée(s)")

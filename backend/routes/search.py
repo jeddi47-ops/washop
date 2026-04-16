@@ -1,15 +1,38 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from datetime import datetime, timezone
+from typing import Optional
 
 from database import db
 from middleware.auth import get_current_user
 from utils.helpers import success_response, paginated_response, validate_pagination, utc_now
+import jwt as pyjwt
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/search", tags=["Recherche"])
 
 
+def _extract_user_id_optional(request: Request) -> Optional[str]:
+    """Try to extract user_id from token without raising — returns None if not authenticated."""
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+    if not token:
+        return None
+    try:
+        payload = pyjwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
+        return payload.get("sub") if payload.get("type") == "access" else None
+    except Exception:
+        return None
+
+
 @router.get("")
 async def search_products(
+    request: Request,
     q: str = Query(..., min_length=1, max_length=200),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
@@ -94,9 +117,10 @@ async def search_products(
         p.pop("vendor_rank", None)
         p.pop("text_score", None)
 
-    # If no results, save to search_misses
+    # If no results, save to search_misses with client_id if authenticated
     if total == 0:
         trimmed_query = q.strip().lower()
+        client_id = _extract_user_id_optional(request)
         existing_miss = await db.search_misses.find_one({
             "search_query": trimmed_query,
             "searched_at": {"$gte": utc_now().replace(hour=0, minute=0, second=0, microsecond=0)}
@@ -104,7 +128,7 @@ async def search_products(
         if not existing_miss:
             await db.search_misses.insert_one({
                 "search_query": trimmed_query,
-                "client_id": None,
+                "client_id": client_id,
                 "searched_at": utc_now()
             })
 

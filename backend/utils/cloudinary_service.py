@@ -1,121 +1,170 @@
 """
-Cloudinary Service - Infrastructure ready.
-Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET to .env for activation.
+Cloudinary Service - Production.
+All operations use the real Cloudinary API. No mocks, no placeholders.
 """
 import os
+import io
 import time
 import logging
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.utils
+
 logger = logging.getLogger(__name__)
 
-CLOUDINARY_CONFIGURED = False
+# ---------- Startup validation ----------
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
-try:
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary.utils
+_MISSING = [
+    name for name, val in [
+        ("CLOUDINARY_CLOUD_NAME", CLOUDINARY_CLOUD_NAME),
+        ("CLOUDINARY_API_KEY", CLOUDINARY_API_KEY),
+        ("CLOUDINARY_API_SECRET", CLOUDINARY_API_SECRET),
+    ] if not val
+]
 
-    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
-    api_key = os.environ.get("CLOUDINARY_API_KEY", "")
-    api_secret = os.environ.get("CLOUDINARY_API_SECRET", "")
+if _MISSING:
+    raise EnvironmentError(
+        f"Variables d'environnement Cloudinary manquantes: {', '.join(_MISSING)}. "
+        "Ajoutez-les dans /app/backend/.env et redemarrez."
+    )
 
-    if cloud_name and api_key and api_secret:
-        cloudinary.config(
-            cloud_name=cloud_name,
-            api_key=api_key,
-            api_secret=api_secret,
-            secure=True
-        )
-        CLOUDINARY_CONFIGURED = True
-        logger.info("Cloudinary configured successfully")
-    else:
-        logger.warning("Cloudinary credentials not set - image upload disabled")
-except ImportError:
-    logger.warning("Cloudinary library not installed")
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET,
+    secure=True,
+)
+logger.info(
+    "Cloudinary configure: cloud_name=%s, api_key=%s***",
+    CLOUDINARY_CLOUD_NAME,
+    CLOUDINARY_API_KEY[:6],
+)
+
+# ---------- Constants ----------
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
+MAX_FILE_SIZE = 2 * 1024 * 1024  # 2 MB
+MAX_IMAGES_PER_PRODUCT = 5
 
 
+# ---------- Helpers ----------
 def is_cloudinary_configured() -> bool:
-    return CLOUDINARY_CONFIGURED
+    """Always True — startup would have crashed otherwise."""
+    return True
 
 
+def validate_image_file(content_type: str, size: int) -> tuple[bool, str]:
+    if content_type not in ALLOWED_TYPES:
+        return False, f"Type de fichier non autorise: {content_type}. Acceptes: jpg, png, webp"
+    if size > MAX_FILE_SIZE:
+        return False, f"Fichier trop volumineux ({size} octets). Maximum: 2 Mo"
+    return True, ""
+
+
+# ---------- Signature (frontend direct upload) ----------
 def generate_upload_signature(folder: str = "washop/products") -> dict:
-    """Generate signed upload parameters for frontend direct upload."""
-    if not CLOUDINARY_CONFIGURED:
-        return {"error": "Cloudinary not configured"}
-
     timestamp = int(time.time())
     params = {"timestamp": timestamp, "folder": folder}
-    signature = cloudinary.utils.api_sign_request(params, os.environ["CLOUDINARY_API_SECRET"])
-
+    signature = cloudinary.utils.api_sign_request(params, CLOUDINARY_API_SECRET)
+    logger.info("Signature Cloudinary generee pour folder=%s", folder)
     return {
         "signature": signature,
         "timestamp": timestamp,
-        "cloud_name": os.environ["CLOUDINARY_CLOUD_NAME"],
-        "api_key": os.environ["CLOUDINARY_API_KEY"],
-        "folder": folder
+        "cloud_name": CLOUDINARY_CLOUD_NAME,
+        "api_key": CLOUDINARY_API_KEY,
+        "folder": folder,
     }
 
 
-async def upload_image(file_bytes: bytes, folder: str = "washop/products", public_id: str = None) -> dict:
-    """Upload image to Cloudinary from backend."""
-    if not CLOUDINARY_CONFIGURED:
-        return {"error": "Cloudinary not configured", "cloudinary_url": "", "cloudinary_public_id": ""}
-
+# ---------- Upload ----------
+async def upload_image(
+    file_bytes: bytes,
+    folder: str = "washop/products",
+    public_id: str | None = None,
+) -> dict:
+    """Upload to Cloudinary. Raises on failure — no silent fallback."""
     try:
-        import io
         result = cloudinary.uploader.upload(
             io.BytesIO(file_bytes),
             folder=folder,
             public_id=public_id,
             resource_type="image",
             allowed_formats=["jpg", "jpeg", "png", "webp"],
-            max_bytes=2 * 1024 * 1024  # 2MB
         )
-        return {
-            "cloudinary_url": result["secure_url"],
-            "cloudinary_public_id": result["public_id"]
-        }
+        url = result["secure_url"]
+        pid = result["public_id"]
+        logger.info("Cloudinary upload OK: public_id=%s, url=%s", pid, url[:80])
+        return {"cloudinary_url": url, "cloudinary_public_id": pid}
     except Exception as e:
-        logger.error(f"Cloudinary upload error: {e}")
-        return {"error": str(e), "cloudinary_url": "", "cloudinary_public_id": ""}
+        logger.error("Cloudinary upload ECHOUE: %s", e)
+        raise RuntimeError(f"Echec upload Cloudinary: {e}") from e
 
 
+# ---------- Delete ----------
 def delete_image(public_id: str) -> bool:
-    """Delete image from Cloudinary."""
-    if not CLOUDINARY_CONFIGURED:
-        logger.info(f"[CLOUDINARY MOCK] Delete: {public_id}")
-        return True
-
+    """Delete one image. Raises on failure."""
     try:
         result = cloudinary.uploader.destroy(public_id, invalidate=True)
-        return result.get("result") == "ok"
+        ok = result.get("result") == "ok"
+        if ok:
+            logger.info("Cloudinary delete OK: %s", public_id)
+        else:
+            logger.warning("Cloudinary delete retour inattendu pour %s: %s", public_id, result)
+        return ok
     except Exception as e:
-        logger.error(f"Cloudinary delete error: {e}")
-        return False
+        logger.error("Cloudinary delete ECHOUE pour %s: %s", public_id, e)
+        raise RuntimeError(f"Echec suppression Cloudinary ({public_id}): {e}") from e
 
 
-def delete_images(public_ids: list) -> bool:
-    """Delete multiple images from Cloudinary."""
-    if not CLOUDINARY_CONFIGURED:
-        logger.info(f"[CLOUDINARY MOCK] Bulk delete: {public_ids}")
-        return True
-
-    success = True
+def delete_images(public_ids: list[str]) -> bool:
+    """Delete multiple images. Logs each result, raises on first hard failure."""
+    all_ok = True
     for pid in public_ids:
-        if not delete_image(pid):
-            success = False
-    return success
+        try:
+            if not delete_image(pid):
+                all_ok = False
+        except RuntimeError:
+            all_ok = False
+            # continue deleting remaining images even if one fails
+    return all_ok
 
 
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
-MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
-MAX_IMAGES_PER_PRODUCT = 5
+# ---------- Test helper ----------
+async def test_cloudinary_upload() -> dict:
+    """Upload a tiny 4x4 green PNG, verify URL, then delete it. Returns diagnostic."""
+    import struct, zlib
 
+    def _make_png(w: int = 4, h: int = 4, color: tuple = (37, 211, 102)) -> bytes:
+        def chunk(ctype: bytes, data: bytes) -> bytes:
+            c = ctype + data
+            return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+        raw = b""
+        for _ in range(h):
+            raw += b"\x00" + bytes(color) * w
+        return (
+            b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw))
+            + chunk(b"IEND", b"")
+        )
 
-def validate_image_file(content_type: str, size: int) -> tuple:
-    """Validate image file type and size. Returns (is_valid, error_message)."""
-    if content_type not in ALLOWED_TYPES:
-        return False, f"Type de fichier non autorisé: {content_type}. Acceptés: jpg, png, webp"
-    if size > MAX_FILE_SIZE:
-        return False, f"Fichier trop volumineux ({size} bytes). Maximum: 2MB"
-    return True, ""
+    png_bytes = _make_png()
+
+    # Upload
+    upload_result = await upload_image(png_bytes, folder="washop/test")
+    url = upload_result["cloudinary_url"]
+    pid = upload_result["cloudinary_public_id"]
+
+    # Delete
+    deleted = delete_image(pid)
+
+    return {
+        "status": "OK",
+        "cloud_name": CLOUDINARY_CLOUD_NAME,
+        "uploaded_url": url,
+        "public_id": pid,
+        "deleted_after_test": deleted,
+    }

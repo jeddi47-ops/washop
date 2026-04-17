@@ -15,6 +15,13 @@ import NotFound from './pages/NotFound';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import ClientDashboard from './pages/client/Dashboard';
+import ClientOrders, { ClientOrderDetail } from './pages/client/Orders';
+import ClientWishlist from './pages/client/Wishlist';
+import ClientNotifications from './pages/client/Notifications';
+import ClientClaims, { ClientClaimDetail } from './pages/client/Claims';
+import ClientProfile from './pages/client/Profile';
 import './App.css';
 
 function SplashScreen({ onDone }) {
@@ -54,7 +61,16 @@ export default function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
-                  {/* Phase 2-4: client, vendor, admin, employee dashboards */}
+                  {/* Client Dashboard */}
+                  <Route path="/client/dashboard" element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
+                  <Route path="/client/orders" element={<ProtectedRoute roles={['client']}><ClientOrders /></ProtectedRoute>} />
+                  <Route path="/client/orders/:id" element={<ProtectedRoute roles={['client']}><ClientOrderDetail /></ProtectedRoute>} />
+                  <Route path="/client/wishlist" element={<ProtectedRoute roles={['client']}><ClientWishlist /></ProtectedRoute>} />
+                  <Route path="/client/notifications" element={<ProtectedRoute roles={['client']}><ClientNotifications /></ProtectedRoute>} />
+                  <Route path="/client/claims" element={<ProtectedRoute roles={['client']}><ClientClaims /></ProtectedRoute>} />
+                  <Route path="/client/claims/:id" element={<ProtectedRoute roles={['client']}><ClientClaimDetail /></ProtectedRoute>} />
+                  <Route path="/client/profile" element={<ProtectedRoute roles={['client']}><ClientProfile /></ProtectedRoute>} />
+                  {/* Phase 3-4: vendor, admin, employee dashboards */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

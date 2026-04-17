@@ -22,6 +22,14 @@ import ClientWishlist from './pages/client/Wishlist';
 import ClientNotifications from './pages/client/Notifications';
 import ClientClaims, { ClientClaimDetail } from './pages/client/Claims';
 import ClientProfile from './pages/client/Profile';
+import VendorDashboard from './pages/vendor/Dashboard';
+import VendorProducts from './pages/vendor/Products';
+import VendorOrders, { VendorOrderDetail } from './pages/vendor/Orders';
+import VendorAnalytics from './pages/vendor/Analytics';
+import VendorSubscription from './pages/vendor/Subscription';
+import VendorProfile from './pages/vendor/Profile';
+import VendorOnboarding from './pages/vendor/Onboarding';
+import VendorNotifications from './pages/vendor/Notifications';
 import './App.css';
 
 function SplashScreen({ onDone }) {
@@ -70,7 +78,17 @@ export default function App() {
                   <Route path="/client/claims" element={<ProtectedRoute roles={['client']}><ClientClaims /></ProtectedRoute>} />
                   <Route path="/client/claims/:id" element={<ProtectedRoute roles={['client']}><ClientClaimDetail /></ProtectedRoute>} />
                   <Route path="/client/profile" element={<ProtectedRoute roles={['client']}><ClientProfile /></ProtectedRoute>} />
-                  {/* Phase 3-4: vendor, admin, employee dashboards */}
+                  {/* Vendor Dashboard */}
+                  <Route path="/vendor/dashboard" element={<ProtectedRoute roles={['vendor']}><VendorDashboard /></ProtectedRoute>} />
+                  <Route path="/vendor/products" element={<ProtectedRoute roles={['vendor']}><VendorProducts /></ProtectedRoute>} />
+                  <Route path="/vendor/orders" element={<ProtectedRoute roles={['vendor']}><VendorOrders /></ProtectedRoute>} />
+                  <Route path="/vendor/orders/:id" element={<ProtectedRoute roles={['vendor']}><VendorOrderDetail /></ProtectedRoute>} />
+                  <Route path="/vendor/analytics" element={<ProtectedRoute roles={['vendor']}><VendorAnalytics /></ProtectedRoute>} />
+                  <Route path="/vendor/subscription" element={<ProtectedRoute roles={['vendor']}><VendorSubscription /></ProtectedRoute>} />
+                  <Route path="/vendor/profile" element={<ProtectedRoute roles={['vendor']}><VendorProfile /></ProtectedRoute>} />
+                  <Route path="/vendor/onboarding" element={<ProtectedRoute roles={['vendor']}><VendorOnboarding /></ProtectedRoute>} />
+                  <Route path="/vendor/notifications" element={<ProtectedRoute roles={['vendor']}><VendorNotifications /></ProtectedRoute>} />
+                  {/* Phase 4: admin, employee dashboards */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

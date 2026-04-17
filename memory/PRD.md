@@ -1,71 +1,35 @@
-# Washop Backend - PRD
+# Washop - PRD
 
 ## Problem Statement
-Build complete backend for Washop, a global WhatsApp-based marketplace platform. Vendors pay subscription via access keys, clients order via WhatsApp redirect. No payment processing between clients/vendors.
+Build Washop frontend + backend - WhatsApp-based marketplace platform.
 
 ## Architecture
-- **Stack**: FastAPI (Python) + MongoDB + Cloudinary + SendGrid
-- **API Versioning**: All routes under `/api/v1/`
-- **Auth**: JWT custom with bcrypt cost 12
-- **Documentation**: Swagger at `/api/docs`
+- Backend: FastAPI + MongoDB (deployed on Railway)
+- Frontend: React + Tailwind + shadcn/ui
+- API: https://washop-production.up.railway.app/api/v1/
 
-## User Personas
-- **Client**: Browse, search, order via WhatsApp, review, wishlist, claims
-- **Vendor**: Manage shop/products, view orders/stats, activate access keys
-- **Admin**: Full platform management, key generation, moderation, analytics
-- **Employee**: Handle assigned claims, moderate reviews
+## What's Been Implemented
 
-## Core Requirements
-- Access key-based subscription system (basic/premium/extra)
-- WhatsApp redirect for orders (wa.me deep links)
-- Full-text search with vendor ranking (Extra > Premium > Basic)
-- Review moderation system
-- Claims/customer service system
-- Cron jobs for subscription expiry, flash sales, reports
+### Backend (Complete)
+- Full auth system, vendors, products, orders, reviews, access keys, wishlist, claims, flash sales, notifications, search, admin, cron jobs
+- Cloudinary + SendGrid integrated (production)
 
-## What's Been Implemented (April 15, 2026)
-- [x] Complete auth system (register, login, logout, refresh, forgot/reset password)
-- [x] Vendor management with 7-day trial
-- [x] Product CRUD with quota enforcement (basic=15 max)
-- [x] Category CRUD
-- [x] Order system with WhatsApp URL generation + idempotency
-- [x] Review system with moderation + auto rating recalculation
-- [x] Access key system (bulk generate, activate, blacklist, extension/upgrade)
-- [x] Wishlist management
-- [x] Claims + threaded messages + assignment
-- [x] Flash sales + featured products
-- [x] Notification system
-- [x] Full-text search with vendor ranking + search miss logging
-- [x] Admin dashboard with metrics
-- [x] Admin logs + history tracking
-- [x] Cron jobs (subscription expiry, flash sales, reports)
-- [x] RBAC (client/vendor/admin/employee)
-- [x] Soft delete strategy
-- [x] Pagination standard on all list endpoints
-- [x] Cloudinary infrastructure (MOCKED - awaiting API keys)
-- [x] SendGrid infrastructure (MOCKED - awaiting API key)
-- [x] Rate limiting (100 req/15min)
-- [x] Brute force protection
-- [x] Swagger documentation
+### Frontend Phase 1 (April 2026) 
+- [x] Design system: dark theme, WhatsApp green, glassmorphism, Inter font
+- [x] i18n: French + English with toggle
+- [x] Navbar: logo, search with autocomplete, cart, notifications, auth, mobile hamburger
+- [x] Homepage: Hero, Comment ca marche, Pricing (Basic/Premium/Extra), Flash Sales, Featured, Trending, Testimonials, Catalogue with filters
+- [x] Auth: Login, Register (role selection), Forgot Password - connected to Railway backend
+- [x] Product Detail: gallery, vendor card, WhatsApp order, add to cart, reviews tabs, similar products
+- [x] Shop Page: vendor banner, products grid, reviews
+- [x] Search Page: full-text search with empty state
+- [x] Cart Drawer: multi-item, vendor lock, WhatsApp checkout
+- [x] About Page: mission, how it works, values, CTA
+- [x] 404 Page
+- [x] Footer
+- [x] Mobile-first responsive
 
-## Prioritized Backlog
-### P0 (Blocking)
-- None currently
-
-### P1 (Important)
-- Cloudinary activation (add API keys)
-- SendGrid activation (add API key)
-- Product image upload testing with real Cloudinary
-
-### P2 (Nice to have)
-- Email templates beautification
-- Admin dashboard frontend
-- API rate limiting per user role
-- Webhook notifications for order status changes
-- Export reports (CSV/PDF)
-
-## Next Tasks
-1. Add Cloudinary API keys and test image upload flow
-2. Add SendGrid API key and test email sending
-3. Consider building admin dashboard frontend
-4. Performance optimization for large datasets
+### Remaining Phases
+- Phase 2: Client Dashboard (orders, wishlist, notifications, claims, profile)
+- Phase 3: Vendor Dashboard (products CRUD, orders, analytics, subscription, onboarding)
+- Phase 4: Admin Dashboard + Employee Dashboard

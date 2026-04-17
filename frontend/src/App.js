@@ -1,54 +1,68 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { LangProvider } from './contexts/LangContext';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import CartDrawer from './components/shared/CartDrawer';
+import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
+import ShopPage from './pages/ShopPage';
+import SearchPage from './pages/SearchPage';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
+function SplashScreen({ onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 1200); return () => clearTimeout(t); }, [onDone]);
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+      <div className="text-center animate-fade-scale">
+        <img src="/logo.png" alt="Washop" className="h-24 w-24 rounded-2xl mx-auto mb-4 object-cover" />
+        <p className="text-xl font-bold">Wa<span className="text-[#25D366]">shop</span></p>
+        <div className="mt-6 w-48 h-1 bg-[#1A1A1A] rounded-full mx-auto overflow-hidden">
+          <div className="h-full bg-[#25D366] rounded-full animate-progress" />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  const [splash, setSplash] = useState(true);
+
+  return (
+    <BrowserRouter>
+      <LangProvider>
+        <AuthProvider>
+          <CartProvider>
+            {splash && <SplashScreen onDone={() => setSplash(false)} />}
+            <div className={`min-h-screen bg-black ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+              <Navbar />
+              <CartDrawer />
+              <main className="min-h-screen">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products/:id" element={<ProductDetail />} />
+                  <Route path="/boutiques/:slug" element={<ShopPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  {/* Phase 2-4: client, vendor, admin, employee dashboards */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </AuthProvider>
+      </LangProvider>
+    </BrowserRouter>
+  );
+}

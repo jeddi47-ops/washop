@@ -41,7 +41,7 @@ export default function SearchPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">{Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />)}</div>
         ) : results.length === 0 ? (
           <div className="text-center py-20">
-            <Search className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-lg font-semibold text-gray-300 mb-2">{t.search.no_results} "{q}"</p>
             <p className="text-sm text-gray-500 mb-6">{t.search.noted}</p>
             <Link to="/" className="btn-primary !px-8">{t.search.explore_all}</Link>

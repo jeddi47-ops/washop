@@ -38,9 +38,9 @@ export default function CartDrawer() {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#111] animate-slide-right flex flex-col">
-        <div className="p-4 flex items-center justify-between border-b border-white/5">
+      <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white animate-slide-right flex flex-col">
+        <div className="p-4 flex items-center justify-between border-b border-gray-200">
           <h2 className="font-bold text-lg flex items-center gap-2"><ShoppingBag className="w-5 h-5" /> {t.cart.title} ({count})</h2>
           <button onClick={() => setOpen(false)} data-testid="close-cart"><X className="w-5 h-5" /></button>
         </div>
@@ -58,19 +58,19 @@ export default function CartDrawer() {
         <div className="flex-1 overflow-y-auto">
           {cart.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-6">
-              <ShoppingBag className="w-16 h-16 text-gray-700 mb-4" />
-              <p className="text-gray-400 mb-4">{t.cart.empty}</p>
+              <ShoppingBag className="w-16 h-16 text-gray-500 mb-4" />
+              <p className="text-gray-500 mb-4">{t.cart.empty}</p>
               <button onClick={() => { setOpen(false); navigate('/'); }} className="btn-primary !text-sm">{t.cart.explore}</button>
             </div>
           ) : (
             <>
               {cart.vendorName && (
-                <div className="p-3 mx-4 mt-4 rounded-lg bg-white/5 text-sm"><span className="text-gray-400">Boutique:</span> <span className="font-semibold text-[#25D366]">{cart.vendorName}</span></div>
+                <div className="p-3 mx-4 mt-4 rounded-lg bg-gray-50 text-sm"><span className="text-gray-600">Boutique:</span> <span className="font-semibold text-[#25D366]">{cart.vendorName}</span></div>
               )}
               <div className="p-4 space-y-3">
                 {cart.items.map(item => (
                   <div key={item.product_id} className="flex gap-3 p-3 glass">
-                    {item.image ? <img src={item.image} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" /> : <div className="w-16 h-16 rounded-lg bg-[#1A1A1A] flex-shrink-0" />}
+                    {item.image ? <img src={item.image} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" /> : <div className="w-16 h-16 rounded-lg bg-gray-100 flex-shrink-0" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -78,9 +78,9 @@ export default function CartDrawer() {
                         {item.flash_sale && <span className="text-xs text-gray-500 line-through">{item.original_price.toFixed(2)} $</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => updateQty(item.product_id, item.quantity - 1)} className="w-7 h-7 rounded-md bg-white/5 flex items-center justify-center hover:bg-white/10 transition"><Minus className="w-3 h-3" /></button>
+                        <button onClick={() => updateQty(item.product_id, item.quantity - 1)} className="w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition"><Minus className="w-3 h-3" /></button>
                         <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQty(item.product_id, item.quantity + 1)} disabled={item.quantity >= item.stock} className="w-7 h-7 rounded-md bg-white/5 flex items-center justify-center hover:bg-white/10 transition disabled:opacity-30"><Plus className="w-3 h-3" /></button>
+                        <button onClick={() => updateQty(item.product_id, item.quantity + 1)} disabled={item.quantity >= item.stock} className="w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-30"><Plus className="w-3 h-3" /></button>
                         <button onClick={() => removeItem(item.product_id)} className="ml-auto p-1.5 text-red-400 hover:bg-red-500/10 rounded-md transition"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
@@ -92,7 +92,7 @@ export default function CartDrawer() {
         </div>
 
         {cart.items.length > 0 && (
-          <div className="p-4 border-t border-white/5 space-y-3">
+          <div className="p-4 border-t border-gray-200 space-y-3">
             <div className="flex justify-between text-lg font-bold">
               <span>{t.cart.subtotal}</span>
               <span className="text-[#25D366]">{total.toFixed(2)} $</span>

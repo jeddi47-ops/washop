@@ -41,11 +41,11 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="glass p-6 space-y-4">
           {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm" data-testid="login-error">{error}</div>}
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.email}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.email}</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required data-testid="login-email" />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.password}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.password}</label>
             <div className="relative">
               <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required data-testid="login-password" />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">{showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
@@ -57,7 +57,7 @@ export default function Login() {
           <div className="flex justify-between text-sm">
             <Link to="/forgot-password" className="text-[#25D366] hover:underline">{t.auth.forgot}</Link>
           </div>
-          <p className="text-center text-sm text-gray-400">{t.auth.no_account} <Link to="/register" className="text-[#25D366] hover:underline font-medium">{t.nav.register}</Link></p>
+          <p className="text-center text-sm text-gray-600">{t.auth.no_account} <Link to="/register" className="text-[#25D366] hover:underline font-medium">{t.nav.register}</Link></p>
         </form>
       </div>
     </div>

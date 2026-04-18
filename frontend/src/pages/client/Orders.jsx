@@ -42,13 +42,13 @@ export default function ClientOrders() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="client-orders">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/client/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/client/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold">Mes commandes</h1>
         </div>
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6">
           {filters.map(f => (
-            <button key={f.value} onClick={() => setFilter(f.value)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${filter === f.value ? 'bg-[#25D366] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>{f.label}</button>
+            <button key={f.value} onClick={() => setFilter(f.value)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${filter === f.value ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>{f.label}</button>
           ))}
         </div>
 
@@ -56,8 +56,8 @@ export default function ClientOrders() {
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 animate-shimmer rounded-xl" />)}</div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
-            <Package className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-400">Aucune commande</p>
+            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">Aucune commande</p>
             <Link to="/" className="btn-primary mt-4 inline-block">Explorer les boutiques</Link>
           </div>
         ) : (
@@ -94,7 +94,7 @@ export function ClientOrderDetail() {
   }, [id]);
 
   if (loading) return <div className="min-h-screen pt-20 px-4"><div className="max-w-3xl mx-auto space-y-4"><div className="h-32 animate-shimmer rounded-xl" /><div className="h-48 animate-shimmer rounded-xl" /></div></div>;
-  if (!order) return <div className="min-h-screen pt-20 flex items-center justify-center text-gray-400">Commande non trouvee</div>;
+  if (!order) return <div className="min-h-screen pt-20 flex items-center justify-center text-gray-600">Commande non trouvee</div>;
 
   const total = order.items?.reduce((s, i) => s + (i.price_at_time || 0) * (i.quantity || 1), 0) || 0;
   const currentStep = statusSteps.indexOf(order.status);
@@ -103,7 +103,7 @@ export function ClientOrderDetail() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="order-detail">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/client/orders" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/client/orders" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <div>
             <h1 className="text-xl font-bold">Commande #{order.id?.slice(-8)}</h1>
             <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
@@ -118,10 +118,10 @@ export function ClientOrderDetail() {
               {statusSteps.map((s, i) => (
                 <React.Fragment key={s}>
                   <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${i <= currentStep ? 'bg-[#25D366] text-white' : 'bg-white/5 text-gray-600'}`}>{i + 1}</div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${i <= currentStep ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-500'}`}>{i + 1}</div>
                     <span className="text-[10px] text-gray-500 mt-1 text-center">{statusLabel[s]?.split(' ')[0]}</span>
                   </div>
-                  {i < statusSteps.length - 1 && <div className={`flex-1 h-0.5 mx-2 ${i < currentStep ? 'bg-[#25D366]' : 'bg-white/5'}`} />}
+                  {i < statusSteps.length - 1 && <div className={`flex-1 h-0.5 mx-2 ${i < currentStep ? 'bg-[#25D366]' : 'bg-gray-50'}`} />}
                 </React.Fragment>
               ))}
             </div>
@@ -134,8 +134,8 @@ export function ClientOrderDetail() {
           <h2 className="font-semibold mb-3">Articles</h2>
           <div className="space-y-3">
             {order.items?.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02]">
-                <div className="w-12 h-12 rounded-lg bg-[#1A1A1A] flex-shrink-0" />
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
+                <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{item.product_name || `Produit`}</p>
                   <p className="text-xs text-gray-500">x{item.quantity}</p>
@@ -144,7 +144,7 @@ export function ClientOrderDetail() {
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-4 pt-3 border-t border-white/5">
+          <div className="flex justify-between mt-4 pt-3 border-t border-gray-200">
             <span className="font-semibold">Total</span>
             <span className="font-bold text-[#25D366] text-lg">{total.toFixed(2)} $</span>
           </div>
@@ -196,13 +196,13 @@ function ReviewModal({ orderId, vendorId, items, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass p-6 w-full max-w-md max-h-[80vh] overflow-y-auto animate-fade-scale">
         {done ? (
           <div className="text-center py-6">
             <Star className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
             <p className="font-bold mb-1">Merci pour vos avis !</p>
-            <p className="text-sm text-gray-400 mb-4">Ils sont en attente de moderation.</p>
+            <p className="text-sm text-gray-500 mb-4">Ils sont en attente de moderation.</p>
             <button onClick={onClose} className="btn-primary">Fermer</button>
           </div>
         ) : (
@@ -236,7 +236,7 @@ function StarPicker({ value, onChange }) {
     <div className="flex gap-1">
       {[1,2,3,4,5].map(i => (
         <button key={i} type="button" onClick={() => onChange(i)} className="transition hover:scale-110">
-          <Star className={`w-6 h-6 ${i <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
+          <Star className={`w-6 h-6 ${i <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'}`} />
         </button>
       ))}
     </div>

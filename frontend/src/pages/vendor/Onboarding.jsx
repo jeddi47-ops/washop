@@ -42,8 +42,8 @@ export default function VendorOnboarding() {
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
             <React.Fragment key={s}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${i <= step ? 'bg-[#25D366] text-white' : 'bg-white/5 text-gray-600'}`}>{i < step ? <CheckCircle className="w-4 h-4" /> : i + 1}</div>
-              {i < steps.length - 1 && <div className={`w-12 h-0.5 ${i < step ? 'bg-[#25D366]' : 'bg-white/5'}`} />}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${i <= step ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-500'}`}>{i < step ? <CheckCircle className="w-4 h-4" /> : i + 1}</div>
+              {i < steps.length - 1 && <div className={`w-12 h-0.5 ${i < step ? 'bg-[#25D366]' : 'bg-gray-50'}`} />}
             </React.Fragment>
           ))}
         </div>
@@ -58,11 +58,11 @@ export default function VendorOnboarding() {
             </div>
             {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Nom de la boutique *</label>
+              <label className="text-sm text-gray-500 mb-1 block">Nom de la boutique *</label>
               <input value={form.shop_name} onChange={e => set('shop_name', e.target.value)} placeholder="Ma Super Boutique" required data-testid="onboard-shop-name" />
             </div>
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Description</label>
+              <label className="text-sm text-gray-500 mb-1 block">Description</label>
               <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} placeholder="Decrivez votre boutique..." />
             </div>
             <button onClick={next} className="btn-primary w-full flex items-center justify-center gap-2">Suivant <ChevronRight className="w-4 h-4" /></button>
@@ -79,16 +79,16 @@ export default function VendorOnboarding() {
             </div>
             {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Numero WhatsApp *</label>
+              <label className="text-sm text-gray-500 mb-1 block">Numero WhatsApp *</label>
               <input value={form.whatsapp_number} onChange={e => set('whatsapp_number', e.target.value)} placeholder="+243 ..." required data-testid="onboard-whatsapp" />
-              <p className="text-xs text-gray-600 mt-1">Les clients vous contacteront via ce numero</p>
+              <p className="text-xs text-gray-500 mt-1">Les clients vous contacteront via ce numero</p>
             </div>
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Instagram</label>
+              <label className="text-sm text-gray-500 mb-1 block">Instagram</label>
               <input value={form.instagram_url} onChange={e => set('instagram_url', e.target.value)} placeholder="https://instagram.com/..." />
             </div>
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">TikTok</label>
+              <label className="text-sm text-gray-500 mb-1 block">TikTok</label>
               <input value={form.tiktok_url} onChange={e => set('tiktok_url', e.target.value)} placeholder="https://tiktok.com/@..." />
             </div>
             <div className="flex gap-3">
@@ -107,8 +107,8 @@ export default function VendorOnboarding() {
               <CheckCircle className="w-10 h-10 text-[#25D366]" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Boutique creee !</h2>
-            <p className="text-sm text-gray-400 mb-2">Vous beneficiez de 7 jours d'essai gratuit (Basic).</p>
-            <p className="text-sm text-gray-400 mb-6">Ajoutez maintenant vos premiers produits.</p>
+            <p className="text-sm text-gray-500 mb-2">Vous beneficiez de 7 jours d'essai gratuit (Basic).</p>
+            <p className="text-sm text-gray-500 mb-6">Ajoutez maintenant vos premiers produits.</p>
             <button onClick={() => navigate('/vendor/products')} className="btn-primary w-full mb-3">Ajouter des produits</button>
             <button onClick={() => navigate('/vendor/dashboard')} className="btn-secondary w-full !text-sm">Aller au tableau de bord</button>
           </div>

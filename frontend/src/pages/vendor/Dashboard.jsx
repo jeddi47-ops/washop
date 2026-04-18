@@ -99,8 +99,8 @@ export default function VendorDashboard() {
             </div>
             {recentOrders.length === 0 ? <p className="text-gray-500 text-sm text-center py-6">Aucune commande</p> :
               <div className="space-y-2">{recentOrders.map(o => (
-                <Link key={o.id} to={`/vendor/orders/${o.id}`} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition">
-                  <div className="flex-1 min-w-0"><p className="text-sm truncate">{o.items?.length || 0} article(s)</p><p className="text-xs text-gray-600">{new Date(o.created_at).toLocaleDateString()}</p></div>
+                <Link key={o.id} to={`/vendor/orders/${o.id}`} className="flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                  <div className="flex-1 min-w-0"><p className="text-sm truncate">{o.items?.length || 0} article(s)</p><p className="text-xs text-gray-500">{new Date(o.created_at).toLocaleDateString()}</p></div>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColor[o.status]}`}>{statusLabel[o.status]}</span>
                 </Link>
               ))}</div>}
@@ -114,8 +114,8 @@ export default function VendorDashboard() {
             </div>
             {topProducts.length === 0 ? <p className="text-gray-500 text-sm text-center py-6">Aucun produit</p> :
               <div className="space-y-2">{topProducts.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02]">
-                  <div className="w-10 h-10 rounded-lg bg-[#1A1A1A] flex-shrink-0 overflow-hidden">{p.images?.[0]?.cloudinary_url && <img src={p.images[0].cloudinary_url} alt="" className="w-full h-full object-cover" />}</div>
+                <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-gray-50">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">{p.images?.[0]?.cloudinary_url && <img src={p.images[0].cloudinary_url} alt="" className="w-full h-full object-cover" />}</div>
                   <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{p.name}</p><p className="text-xs text-gray-500">{p.click_count} clics</p></div>
                   <span className="text-sm font-bold text-[#25D366]">{p.price}$</span>
                 </div>

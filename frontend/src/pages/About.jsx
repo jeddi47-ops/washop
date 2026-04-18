@@ -46,7 +46,7 @@ export default function About() {
                 <div className="w-14 h-14 rounded-xl bg-[#25D366]/10 flex items-center justify-center text-[#25D366] mx-auto mb-4">{s.icon}</div>
                 <span className="absolute top-3 left-3 text-xs text-[#25D366] font-bold">0{i + 1}</span>
                 <h3 className="font-bold mb-2">{s.title}</h3>
-                <p className="text-sm text-gray-400">{s.desc}</p>
+                <p className="text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -62,7 +62,7 @@ export default function About() {
               <div key={i} className="glass p-6 text-center hover:border-[#25D366]/30 transition">
                 <div className="w-16 h-16 rounded-2xl bg-[#25D366]/10 flex items-center justify-center text-[#25D366] mx-auto mb-4">{v.icon}</div>
                 <h3 className="font-bold mb-2">{v.title}</h3>
-                <p className="text-sm text-gray-400">{v.desc}</p>
+                <p className="text-sm text-gray-600">{v.desc}</p>
               </div>
             ))}
           </div>
@@ -74,7 +74,7 @@ export default function About() {
         <div className="max-w-lg mx-auto glass p-8">
           <Store className="w-12 h-12 text-[#25D366] mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Pret a commencer ?</h2>
-          <p className="text-sm text-gray-400 mb-6">Rejoignez des milliers de vendeurs et acheteurs sur Washop</p>
+          <p className="text-sm text-gray-500 mb-6">Rejoignez des milliers de vendeurs et acheteurs sur Washop</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="btn-primary flex items-center justify-center gap-2">Creer un compte <ArrowRight className="w-4 h-4" /></Link>
             <Link to="/" className="btn-secondary">Explorer les boutiques</Link>

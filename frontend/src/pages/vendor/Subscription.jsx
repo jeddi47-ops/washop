@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { vendors, accessKeys } from '../../lib/api';
 import { ChevronLeft, Key, Clock, Loader2, CheckCircle, AlertTriangle, Crown, ShoppingBag, Sparkles, Check, X as XIcon } from 'lucide-react';
 
-const planColor = { basic: 'from-gray-500 to-gray-600', premium: 'from-blue-500 to-blue-600', extra: 'from-[#25D366] to-[#128C7E]' };
-const planBg = { basic: 'bg-gray-500/10 text-gray-400', premium: 'bg-blue-500/10 text-blue-400', extra: 'bg-[#25D366]/10 text-[#25D366]' };
+const planColor = { basic: 'from-gray-100 to-gray-200', premium: 'from-blue-50 to-blue-100', extra: 'from-green-50 to-green-100' };
+const planBg = { basic: 'bg-gray-100 text-gray-600', premium: 'bg-blue-50 text-blue-600', extra: 'bg-green-50 text-[#25D366]' };
 const planIcon = { basic: <ShoppingBag className="w-8 h-8" />, premium: <Crown className="w-8 h-8" />, extra: <Sparkles className="w-8 h-8" /> };
 
 export default function VendorSubscription() {
@@ -60,7 +60,7 @@ export default function VendorSubscription() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-subscription">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold">Abonnement</h1>
         </div>
 
@@ -104,7 +104,7 @@ export default function VendorSubscription() {
             {plans.map(p => {
               const isCurrent = p.name.toLowerCase() === plan;
               return (
-                <div key={p.name} className={`rounded-xl p-4 border transition ${isCurrent ? 'border-[#25D366]/40 bg-[#25D366]/5' : 'border-white/5 bg-white/[0.02]'}`}>
+                <div key={p.name} className={`rounded-xl p-4 border transition ${isCurrent ? 'border-[#25D366]/40 bg-[#25D366]/5' : 'border-gray-200 bg-gray-50'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold">{p.name}</h3>
                     {isCurrent && <span className="text-[10px] bg-[#25D366] text-white px-2 py-0.5 rounded-full font-bold">ACTUEL</span>}
@@ -112,7 +112,7 @@ export default function VendorSubscription() {
                   <p className="text-xl font-bold text-[#25D366] mb-3">{p.price}</p>
                   <div className="space-y-2">
                     {p.features.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><Check className="w-3 h-3 text-[#25D366] flex-shrink-0" /><span className="text-gray-300">{f}</span></div>)}
-                    {p.missing.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><XIcon className="w-3 h-3 text-gray-600 flex-shrink-0" /><span className="text-gray-600">{f}</span></div>)}
+                    {p.missing.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><XIcon className="w-3 h-3 text-gray-500 flex-shrink-0" /><span className="text-gray-500">{f}</span></div>)}
                   </div>
                 </div>
               );
@@ -126,13 +126,13 @@ export default function VendorSubscription() {
           {history.length === 0 ? <p className="text-gray-500 text-sm text-center py-4">Aucun historique</p> :
           <div className="space-y-2">
             {history.map(h => (
-              <div key={h.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02]">
+              <div key={h.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                 <Key className="w-4 h-4 text-[#25D366] flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{h.type?.toUpperCase()} / {h.duration}</p>
                   <p className="text-xs text-gray-500">{h.action} — {new Date(h.created_at).toLocaleDateString()}</p>
                 </div>
-                <span className="text-xs text-gray-400">{new Date(h.started_at).toLocaleDateString()} → {new Date(h.expires_at).toLocaleDateString()}</span>
+                <span className="text-xs text-gray-600">{new Date(h.started_at).toLocaleDateString()} → {new Date(h.expires_at).toLocaleDateString()}</span>
               </div>
             ))}
           </div>}

@@ -42,7 +42,7 @@ export default function VendorProducts() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-products">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold flex-1">Mes produits</h1>
           <button onClick={() => canAdd && setDrawer('new')} disabled={!canAdd} className="btn-primary !py-2 !px-4 !text-sm flex items-center gap-1" data-testid="add-product-btn">
             <Plus className="w-4 h-4" /> Ajouter
@@ -53,10 +53,10 @@ export default function VendorProducts() {
         {isBasic && (
           <div className="glass p-3 mb-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-gray-400">{count}/{quota} produits</span>
+              <span className="text-xs text-gray-600">{count}/{quota} produits</span>
               {count >= quota && <span className="text-xs text-red-400 font-semibold">Limite atteinte — Passez en Premium</span>}
             </div>
-            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${count >= 15 ? 'bg-red-500' : count >= 13 ? 'bg-yellow-500' : 'bg-[#25D366]'}`} style={{ width: `${Math.min(100, (count / quota) * 100)}%` }} />
             </div>
           </div>
@@ -66,15 +66,15 @@ export default function VendorProducts() {
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 animate-shimmer rounded-xl" />)}</div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
-            <Image className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-400 mb-4">Aucun produit</p>
+            <Image className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">Aucun produit</p>
             <button onClick={() => setDrawer('new')} className="btn-primary">Ajouter un produit</button>
           </div>
         ) : (
           <div className="space-y-2">
             {items.map(p => (
               <div key={p.id} className="glass p-3 flex items-center gap-3" data-testid={`product-row-${p.id}`}>
-                <div className="w-14 h-14 rounded-lg bg-[#1A1A1A] flex-shrink-0 overflow-hidden">
+                <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                   {p.images?.[0]?.cloudinary_url && <img src={p.images[0].cloudinary_url} alt="" className="w-full h-full object-cover" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -85,10 +85,10 @@ export default function VendorProducts() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => toggleActive(p)} className="p-2 rounded-lg hover:bg-white/5 transition" title={p.is_active ? 'Desactiver' : 'Activer'}>
+                  <button onClick={() => toggleActive(p)} className="p-2 rounded-lg hover:bg-gray-50 transition" title={p.is_active ? 'Desactiver' : 'Activer'}>
                     {p.is_active ? <ToggleRight className="w-5 h-5 text-[#25D366]" /> : <ToggleLeft className="w-5 h-5 text-gray-500" />}
                   </button>
-                  <button onClick={() => setDrawer(p)} className="p-2 rounded-lg hover:bg-white/5 transition text-gray-400 text-xs font-medium">Editer</button>
+                  <button onClick={() => setDrawer(p)} className="p-2 rounded-lg hover:bg-gray-50 transition text-gray-400 text-xs font-medium">Editer</button>
                   <button onClick={() => deleteProd(p.id)} className="p-2 rounded-lg hover:bg-red-500/10 transition text-red-400"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -142,9 +142,9 @@ function ProductDrawer({ product, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#111] animate-slide-right flex flex-col">
-        <div className="p-4 flex items-center justify-between border-b border-white/5">
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white animate-slide-right flex flex-col">
+        <div className="p-4 flex items-center justify-between border-b border-gray-200">
           <h2 className="font-bold">{product ? 'Modifier le produit' : 'Nouveau produit'}</h2>
           <button onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
@@ -153,42 +153,42 @@ function ProductDrawer({ product, onClose, onSaved }) {
 
           {/* Images */}
           <div>
-            <label className="text-sm text-gray-400 mb-2 block">Images (max 5, 2MB)</label>
+            <label className="text-sm text-gray-500 mb-2 block">Images (max 5, 2MB)</label>
             <label className="glass p-6 border-dashed border-[#25D366]/30 flex flex-col items-center cursor-pointer hover:border-[#25D366]/60 transition">
               <Image className="w-8 h-8 text-[#25D366] mb-2" />
-              <span className="text-xs text-gray-400">Glissez ou cliquez</span>
+              <span className="text-xs text-gray-600">Glissez ou cliquez</span>
               <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => setFiles(Array.from(e.target.files).slice(0, 5))} />
             </label>
             {files.length > 0 && <p className="text-xs text-[#25D366] mt-1">{files.length} fichier(s) selectionne(s)</p>}
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Nom <span className="text-gray-600">({form.name.length}/300)</span></label>
+            <label className="text-sm text-gray-500 mb-1 block">Nom <span className="text-gray-500">({form.name.length}/300)</span></label>
             <input value={form.name} onChange={e => set('name', e.target.value)} required maxLength={300} className="!text-sm" />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Categorie</label>
+            <label className="text-sm text-gray-500 mb-1 block">Categorie</label>
             <select value={form.category_id} onChange={e => set('category_id', e.target.value)} required className="!text-sm">
               <option value="">Choisir...</option>
               {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Description <span className="text-gray-600">({form.description.length}/5000)</span></label>
+            <label className="text-sm text-gray-500 mb-1 block">Description <span className="text-gray-500">({form.description.length}/5000)</span></label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={5000} className="!text-sm" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Prix ($)</label>
+              <label className="text-sm text-gray-500 mb-1 block">Prix ($)</label>
               <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} required className="!text-sm" />
             </div>
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Stock</label>
+              <label className="text-sm text-gray-500 mb-1 block">Stock</label>
               <input type="number" min="0" value={form.stock} onChange={e => set('stock', e.target.value)} required className="!text-sm" />
             </div>
           </div>
         </form>
-        <div className="p-4 border-t border-white/5 flex gap-3">
+        <div className="p-4 border-t border-gray-200 flex gap-3">
           <button type="button" onClick={onClose} className="btn-secondary flex-1 !text-sm">Annuler</button>
           <button onClick={submit} disabled={loading} className="btn-primary flex-1 !text-sm flex items-center justify-center gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Enregistrer

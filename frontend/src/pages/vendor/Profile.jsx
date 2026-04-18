@@ -62,7 +62,7 @@ export default function VendorProfile() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-profile">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold">Mon profil</h1>
         </div>
 
@@ -72,11 +72,11 @@ export default function VendorProfile() {
         <form onSubmit={saveUserProfile} className="glass p-5 mb-4 space-y-4">
           <div className="flex items-center gap-2 mb-2"><Settings className="w-4 h-4 text-[#25D366]" /><h2 className="font-semibold text-sm">Informations personnelles</h2></div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Nom</label>
+            <label className="text-sm text-gray-500 mb-1 block">Nom</label>
             <input value={userForm.name} onChange={e => setUserForm(f => ({ ...f, name: e.target.value }))} required />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Adresse</label>
+            <label className="text-sm text-gray-500 mb-1 block">Adresse</label>
             <input value={userForm.address} onChange={e => setUserForm(f => ({ ...f, address: e.target.value }))} />
           </div>
           <button type="submit" disabled={saving} className="btn-secondary w-full !text-sm">Enregistrer</button>
@@ -86,15 +86,15 @@ export default function VendorProfile() {
         <form onSubmit={save} className="glass p-5 mb-4 space-y-4">
           <div className="flex items-center gap-2 mb-2"><Store className="w-4 h-4 text-[#25D366]" /><h2 className="font-semibold text-sm">Ma boutique</h2></div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Nom de la boutique</label>
+            <label className="text-sm text-gray-500 mb-1 block">Nom de la boutique</label>
             <input value={form.shop_name} onChange={e => set('shop_name', e.target.value)} required data-testid="shop-name" />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Description</label>
+            <label className="text-sm text-gray-500 mb-1 block">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={2000} />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Numero WhatsApp</label>
+            <label className="text-sm text-gray-500 mb-1 block">Numero WhatsApp</label>
             <input value={form.whatsapp_number} onChange={e => set('whatsapp_number', e.target.value)} placeholder="+243..." required data-testid="whatsapp-number" />
           </div>
           <button type="submit" disabled={saving} className="btn-primary w-full flex items-center justify-center gap-2 !text-sm" data-testid="save-shop">
@@ -107,15 +107,15 @@ export default function VendorProfile() {
         <form onSubmit={save} className="glass p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2"><Link2 className="w-4 h-4 text-[#25D366]" /><h2 className="font-semibold text-sm">Reseaux sociaux</h2></div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Instagram</label>
+            <label className="text-sm text-gray-500 mb-1 block">Instagram</label>
             <input value={form.instagram_url} onChange={e => set('instagram_url', e.target.value)} placeholder="https://instagram.com/..." />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">TikTok</label>
+            <label className="text-sm text-gray-500 mb-1 block">TikTok</label>
             <input value={form.tiktok_url} onChange={e => set('tiktok_url', e.target.value)} placeholder="https://tiktok.com/@..." />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Facebook</label>
+            <label className="text-sm text-gray-500 mb-1 block">Facebook</label>
             <input value={form.facebook_url} onChange={e => set('facebook_url', e.target.value)} placeholder="https://facebook.com/..." />
           </div>
           <button type="submit" disabled={saving} className="btn-primary w-full !text-sm">Enregistrer les reseaux</button>

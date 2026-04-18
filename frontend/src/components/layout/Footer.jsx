@@ -5,7 +5,7 @@ import { useLang } from '../../contexts/LangContext';
 export default function Footer() {
   const { t } = useLang();
   return (
-    <footer className="bg-[#0a0a0a] border-t border-white/5 mt-20" data-testid="footer">
+    <footer className="bg-gray-900 border-t border-gray-200 mt-20" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
@@ -30,7 +30,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-10 pt-6 border-t border-white/5 text-center">
+        <div className="mt-10 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-600">&copy; 2025 Washop &mdash; {t.footer.rights}</p>
         </div>
       </div>

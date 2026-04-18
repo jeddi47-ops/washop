@@ -66,28 +66,28 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="glass p-6 space-y-4">
           {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm" data-testid="register-error">{error}</div>}
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.name}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.name}</label>
             <input value={form.name} onChange={e => set('name', e.target.value)} required data-testid="register-name" />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.email}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.email}</label>
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)} required data-testid="register-email" />
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.password}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.password}</label>
             <div className="relative">
               <input type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} required minLength={6} data-testid="register-password" />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">{showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
             </div>
           </div>
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">{t.auth.address}</label>
+            <label className="text-sm text-gray-500 mb-1 block">{t.auth.address}</label>
             <input value={form.address} onChange={e => set('address', e.target.value)} data-testid="register-address" />
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2" data-testid="register-submit">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} {loading ? t.common.loading : t.auth.register_btn}
           </button>
-          <p className="text-center text-sm text-gray-400">{t.auth.has_account} <Link to="/login" className="text-[#25D366] hover:underline font-medium">{t.nav.login}</Link></p>
+          <p className="text-center text-sm text-gray-600">{t.auth.has_account} <Link to="/login" className="text-[#25D366] hover:underline font-medium">{t.nav.login}</Link></p>
         </form>
       </div>
     </div>

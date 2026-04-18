@@ -36,7 +36,7 @@ export default function ForgotPassword() {
           <form onSubmit={handleSubmit} className="glass p-6 space-y-4">
             {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">{t.auth.email}</label>
+              <label className="text-sm text-gray-500 mb-1 block">{t.auth.email}</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">

@@ -26,16 +26,16 @@ function Hero() {
   const { t } = useLang();
   const navigate = useNavigate();
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden px-4" data-testid="hero-section">
+    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden px-4 bg-gradient-to-b from-green-50 via-white to-white" data-testid="hero-section">
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => <div key={i} className="absolute w-1 h-1 rounded-full bg-[#25D366]/30 animate-float" style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${3 + Math.random() * 4}s` }} />)}
+        {[...Array(20)].map((_, i) => <div key={i} className="absolute w-1.5 h-1.5 rounded-full bg-[#25D366]/20 animate-float" style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${3 + Math.random() * 4}s` }} />)}
       </div>
       <div className="relative text-center max-w-3xl mx-auto">
         <img src="/logo.png" alt="Washop" className="h-20 w-20 md:h-24 md:w-24 rounded-2xl mx-auto mb-6 object-cover animate-fade-scale" />
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 text-gray-900">
           {t.hero.title.split(' ').map((w, i) => <span key={i} className={w === 'WhatsApp' ? 'text-[#25D366]' : ''}>{w} </span>)}
         </h1>
-        <p className="text-base md:text-lg text-gray-400 mb-8 max-w-xl mx-auto">{t.hero.subtitle}</p>
+        <p className="text-base md:text-lg text-gray-500 mb-8 max-w-xl mx-auto">{t.hero.subtitle}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })} className="btn-primary !py-3 !px-8 !text-base animate-pulse-green flex items-center justify-center gap-2" data-testid="explore-btn">
             <ShoppingBag className="w-5 h-5" /> {t.hero.explore}
@@ -115,7 +115,7 @@ function FlashSalesSection() {
               <p className="text-sm font-medium truncate">{s.product?.name}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[#25D366] font-bold">{s.discounted_price?.toFixed(2)} $</span>
-                <span className="text-xs text-gray-500 line-through">{s.product?.price?.toFixed(2)} $</span>
+                <span className="text-xs text-gray-400 line-through">{s.product?.price?.toFixed(2)} $</span>
               </div>
               <span className="text-xs text-red-400 font-bold">-{s.discount_percentage}%</span>
             </Link>
@@ -155,28 +155,28 @@ function PricingSection() {
   ];
 
   return (
-    <section className="py-16 px-4" data-testid="pricing-section">
+    <section className="py-16 px-4 bg-gray-50" data-testid="pricing-section">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-2">{t.pricing.title}</h2>
-        <p className="text-center text-gray-400 mb-8">{t.pricing.subtitle}</p>
+        <p className="text-center text-gray-500 mb-8">{t.pricing.subtitle}</p>
         <div className="flex justify-center mb-8">
-          <div className="glass p-1 flex gap-1">
-            <button onClick={() => setAnnual(false)} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${!annual ? 'bg-[#25D366] text-white' : 'text-gray-400'}`}>{t.pricing.monthly}</button>
-            <button onClick={() => setAnnual(true)} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${annual ? 'bg-[#25D366] text-white' : 'text-gray-400'}`}>{t.pricing.annual} <span className="text-xs text-green-300">(-20%)</span></button>
+          <div className="bg-gray-100 p-1 flex gap-1 rounded-xl">
+            <button onClick={() => setAnnual(false)} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${!annual ? 'bg-[#25D366] text-white' : 'text-gray-500'}`}>{t.pricing.monthly}</button>
+            <button onClick={() => setAnnual(true)} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${annual ? 'bg-[#25D366] text-white' : 'text-gray-500'}`}>{t.pricing.annual} <span className="text-xs text-green-400">(-20%)</span></button>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map(plan => (
-            <div key={plan.name} className={`glass p-6 relative ${plan.recommended ? 'border-[#25D366]/40 ring-1 ring-[#25D366]/20' : ''}`}>
+            <div key={plan.name} className={`glass p-6 relative ${plan.recommended ? 'border-[#25D366] ring-2 ring-[#25D366]/20 shadow-lg' : ''}`}>
               {plan.recommended && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#25D366] text-xs font-bold px-3 py-1 rounded-full">{t.pricing.recommended}</span>}
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${plan.color === 'green' ? 'bg-[#25D366]/10 text-[#25D366]' : plan.color === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-gray-400'}`}>{plan.icon}</div>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${plan.color === 'green' ? 'bg-[#25D366]/10 text-[#25D366]' : plan.color === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-50 text-gray-400'}`}>{plan.icon}</div>
               <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
               <p className="text-3xl font-extrabold text-[#25D366] mb-1">{plan.price}$ <span className="text-sm font-normal text-gray-500">{annual ? t.pricing.per_year : t.pricing.per_month}</span></p>
               <div className="space-y-3 mt-6">
                 {plan.features.map((f, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
-                    {f.ok ? <Check className="w-4 h-4 text-[#25D366] flex-shrink-0" /> : <XIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />}
-                    <span className={f.ok ? 'text-gray-300' : 'text-gray-600'}>{f.text}</span>
+                    {f.ok ? <Check className="w-4 h-4 text-[#25D366] flex-shrink-0" /> : <XIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />}
+                    <span className={f.ok ? 'text-gray-700' : 'text-gray-500'}>{f.text}</span>
                   </div>
                 ))}
               </div>
@@ -226,9 +226,9 @@ function Testimonials() {
           {reviews.map((r, i) => (
             <div key={i} className="glass p-5 min-w-[280px] max-w-[280px] flex-shrink-0 hover:border-[#25D366]/30 transition" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="flex items-center gap-1 mb-3">
-                {Array(5).fill(0).map((_, j) => <Star key={j} className={`w-4 h-4 ${j < r.stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700'}`} />)}
+                {Array(5).fill(0).map((_, j) => <Star key={j} className={`w-4 h-4 ${j < r.stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />)}
               </div>
-              <p className="text-sm text-gray-300 mb-4 leading-relaxed">"{r.text}"</p>
+              <p className="text-sm text-gray-600 mb-4 leading-relaxed">"{r.text}"</p>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#25D366]/20 flex items-center justify-center text-[#25D366] font-bold text-sm">{r.name[0]}</div>
                 <div><p className="text-sm font-semibold">{r.name}</p><p className="text-xs text-gray-500">{r.role}</p></div>
@@ -276,9 +276,9 @@ function CatalogSection() {
 
         {/* Categories pills */}
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-4">
-          <button onClick={() => setCatFilter('')} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${!catFilter ? 'bg-[#25D366] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>{t.catalog.all}</button>
+          <button onClick={() => setCatFilter('')} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${!catFilter ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>{t.catalog.all}</button>
           {cats.map(c => (
-            <button key={c.id} onClick={() => setCatFilter(c.id)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${catFilter === c.id ? 'bg-[#25D366] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>{c.name}</button>
+            <button key={c.id} onClick={() => setCatFilter(c.id)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${catFilter === c.id ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>{c.name}</button>
           ))}
         </div>
 
@@ -300,8 +300,8 @@ function CatalogSection() {
 
         {items.length === 0 && !loading && (
           <div className="text-center py-16">
-            <ShoppingBag className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-400">{t.catalog.no_products}</p>
+            <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">{t.catalog.no_products}</p>
           </div>
         )}
 

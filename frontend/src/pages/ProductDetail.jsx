@@ -36,7 +36,7 @@ export default function ProductDetail() {
   }, [id]);
 
   if (loading) return <div className="min-h-screen pt-20 px-4"><div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6"><div className="aspect-square animate-shimmer rounded-xl" /><div className="space-y-4"><div className="h-8 w-3/4 animate-shimmer rounded" /><div className="h-6 w-1/3 animate-shimmer rounded" /><div className="h-20 animate-shimmer rounded" /></div></div></div>;
-  if (!product) return <div className="min-h-screen pt-20 flex items-center justify-center text-gray-400">Produit non trouve</div>;
+  if (!product) return <div className="min-h-screen pt-20 flex items-center justify-center text-gray-600">Produit non trouve</div>;
 
   const images = product.images || [];
   const hasFlash = !!product.flash_sale;
@@ -64,8 +64,8 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           {/* Gallery */}
           <div>
-            <div className="relative aspect-square bg-[#1A1A1A] rounded-xl overflow-hidden mb-3">
-              {images.length > 0 ? <img src={images[imgIdx]?.cloudinary_url} alt={product.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ShoppingBag className="w-20 h-20" /></div>}
+            <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden mb-3">
+              {images.length > 0 ? <img src={images[imgIdx]?.cloudinary_url} alt={product.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-500"><ShoppingBag className="w-20 h-20" /></div>}
               {images.length > 1 && <>
                 <button onClick={() => setImgIdx(i => i > 0 ? i - 1 : images.length - 1)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/80 transition"><ChevronLeft className="w-4 h-4" /></button>
                 <button onClick={() => setImgIdx(i => i < images.length - 1 ? i + 1 : 0)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/80 transition"><ChevronRight className="w-4 h-4" /></button>
@@ -92,7 +92,7 @@ export default function ProductDetail() {
                 <div className="w-10 h-10 rounded-full bg-[#25D366]/20 flex items-center justify-center text-[#25D366] font-bold">{vendor.shop_name?.[0]}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold flex items-center gap-1">{vendor.shop_name} {vendor.is_verified && <ShieldCheck className="w-4 h-4 text-[#25D366]" />}</p>
-                  <div className="flex items-center gap-1"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /><span className="text-xs text-gray-400">{vendor.avg_vendor_rating?.toFixed(1)}</span></div>
+                  <div className="flex items-center gap-1"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /><span className="text-xs text-gray-600">{vendor.avg_vendor_rating?.toFixed(1)}</span></div>
                 </div>
                 <span className="text-xs text-[#25D366]">{t.product.see_shop} &rarr;</span>
               </Link>
@@ -102,11 +102,11 @@ export default function ProductDetail() {
             {inStock && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-400">Qte:</label>
+                  <label className="text-sm text-gray-600">Qte:</label>
                   <div className="flex items-center glass">
-                    <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-3 py-2 hover:bg-white/5 transition">-</button>
+                    <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-3 py-2 hover:bg-gray-50 transition">-</button>
                     <span className="px-4 py-2 font-semibold">{qty}</span>
-                    <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 hover:bg-white/5 transition">+</button>
+                    <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 hover:bg-gray-50 transition">+</button>
                   </div>
                 </div>
                 <button onClick={handleWhatsApp} disabled={ordering} className="btn-primary w-full !py-3 flex items-center justify-center gap-2 text-base" data-testid="order-whatsapp-btn">
@@ -122,7 +122,7 @@ export default function ProductDetail() {
 
         {/* Tabs */}
         <div className="mt-10">
-          <div className="flex gap-4 border-b border-white/5 mb-6">
+          <div className="flex gap-4 border-b border-gray-200 mb-6">
             {['desc', 'product_reviews', 'vendor_reviews'].map(k => (
               <button key={k} onClick={() => setTab(k)} className={`pb-3 text-sm font-semibold transition border-b-2 ${tab === k ? 'border-[#25D366] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>{t.product[k === 'desc' ? 'description' : k]}</button>
             ))}
@@ -149,9 +149,9 @@ export default function ProductDetail() {
 function ReviewCard({ review }) {
   return (
     <div className="glass p-4">
-      <div className="flex items-center gap-1 mb-2">{Array(5).fill(0).map((_, i) => <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700'}`} />)}</div>
+      <div className="flex items-center gap-1 mb-2">{Array(5).fill(0).map((_, i) => <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />)}</div>
       <p className="text-sm text-gray-300 mb-2">{review.comment}</p>
-      <p className="text-xs text-gray-600">{new Date(review.created_at).toLocaleDateString()}</p>
+      <p className="text-xs text-gray-500">{new Date(review.created_at).toLocaleDateString()}</p>
     </div>
   );
 }

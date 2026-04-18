@@ -77,11 +77,11 @@ export default function ClientDashboard() {
           ) : (
             <div className="space-y-2">
               {recentOrders.map(o => (
-                <Link key={o.id} to={`/client/orders/${o.id}`} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition">
+                <Link key={o.id} to={`/client/orders/${o.id}`} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
                   <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{o.items?.length || 0} article(s)</p>
-                    <p className="text-xs text-gray-600">{new Date(o.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-500">{new Date(o.created_at).toLocaleDateString()}</p>
                   </div>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[o.status] || ''}`}>{statusLabel[o.status] || o.status}</span>
                 </Link>

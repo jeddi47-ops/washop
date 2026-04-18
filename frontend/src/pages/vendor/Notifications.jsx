@@ -32,7 +32,7 @@ export default function VendorNotifications() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-notifications">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold flex-1">Notifications <span className="text-sm text-gray-500 font-normal">({total})</span></h1>
           {items.some(n => !n.is_read) && <button onClick={markAll} className="text-xs text-[#25D366] hover:underline flex items-center gap-1"><Check className="w-3 h-3" /> Tout marquer lu</button>}
         </div>
@@ -40,18 +40,18 @@ export default function VendorNotifications() {
         {loading && items.length === 0 ? (
           <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-16 animate-shimmer rounded-xl" />)}</div>
         ) : items.length === 0 ? (
-          <div className="text-center py-20"><Bell className="w-16 h-16 text-gray-700 mx-auto mb-4" /><p className="text-gray-400">Aucune notification</p></div>
+          <div className="text-center py-20"><Bell className="w-16 h-16 text-gray-400 mx-auto mb-4" /><p className="text-gray-600">Aucune notification</p></div>
         ) : (
           <div className="space-y-2">
             {items.map(n => (
-              <div key={n.id} className={`glass p-4 flex items-start gap-3 transition ${!n.is_read ? 'border-l-2 border-l-[#25D366] bg-[#25D366]/[0.03]' : ''}`}>
-                <div className={`mt-0.5 flex-shrink-0 ${!n.is_read ? 'text-[#25D366]' : 'text-gray-600'}`}>{typeIcon[n.type] || <Bell className="w-4 h-4" />}</div>
+              <div key={n.id} className={`glass p-4 flex items-start gap-3 transition ${!n.is_read ? 'border-l-2 border-l-[#25D366] bg-green-50' : ''}`}>
+                <div className={`mt-0.5 flex-shrink-0 ${!n.is_read ? 'text-[#25D366]' : 'text-gray-500'}`}>{typeIcon[n.type] || <Bell className="w-4 h-4" />}</div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${!n.is_read ? 'font-medium' : 'text-gray-400'}`}>{n.message}</p>
-                  <p className="text-xs text-gray-600 mt-1">{new Date(n.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs text-gray-500 mt-1">{new Date(n.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  {!n.is_read && <button onClick={() => markOne(n.id)} className="p-1.5 rounded-md hover:bg-white/5 text-gray-500"><Check className="w-3.5 h-3.5" /></button>}
+                  {!n.is_read && <button onClick={() => markOne(n.id)} className="p-1.5 rounded-md hover:bg-gray-50 text-gray-500"><Check className="w-3.5 h-3.5" /></button>}
                   <button onClick={() => deleteOne(n.id)} className="p-1.5 rounded-md hover:bg-red-500/10 text-gray-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>

@@ -36,7 +36,7 @@ export default function ClientWishlist() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="client-wishlist">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/client/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/client/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold">Wishlist <span className="text-sm text-gray-500 font-normal">({total})</span></h1>
         </div>
 
@@ -44,9 +44,9 @@ export default function ClientWishlist() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="aspect-square animate-shimmer rounded-xl" />)}</div>
         ) : items.length === 0 ? (
           <div className="text-center py-20">
-            <Heart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-400 mb-1">Votre wishlist est vide</p>
-            <p className="text-sm text-gray-600 mb-6">Ajoutez des produits qui vous plaisent</p>
+            <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-1">Votre wishlist est vide</p>
+            <p className="text-sm text-gray-500 mb-6">Ajoutez des produits qui vous plaisent</p>
             <Link to="/" className="btn-primary">Explorer les boutiques</Link>
           </div>
         ) : (
@@ -54,7 +54,7 @@ export default function ClientWishlist() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {items.map(item => (
                 <div key={item.id} className="glass p-3 flex gap-3" data-testid={`wish-${item.product_id}`}>
-                  <Link to={`/products/${item.product_id}`} className="w-20 h-20 rounded-lg bg-[#1A1A1A] flex-shrink-0 overflow-hidden">
+                  <Link to={`/products/${item.product_id}`} className="w-20 h-20 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                     {item.product?.images?.[0]?.cloudinary_url ? <img src={item.product.images[0].cloudinary_url} alt="" className="w-full h-full object-cover" /> : null}
                   </Link>
                   <div className="flex-1 min-w-0">

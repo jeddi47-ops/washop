@@ -35,11 +35,11 @@ import './App.css';
 function SplashScreen({ onDone }) {
   useEffect(() => { const t = setTimeout(onDone, 1200); return () => clearTimeout(t); }, [onDone]);
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
       <div className="text-center animate-fade-scale">
         <img src="/logo.png" alt="Washop" className="h-24 w-24 rounded-2xl mx-auto mb-4 object-cover" />
         <p className="text-xl font-bold">Wa<span className="text-[#25D366]">shop</span></p>
-        <div className="mt-6 w-48 h-1 bg-[#1A1A1A] rounded-full mx-auto overflow-hidden">
+        <div className="mt-6 w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
           <div className="h-full bg-[#25D366] rounded-full animate-progress" />
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function App() {
         <AuthProvider>
           <CartProvider>
             {splash && <SplashScreen onDone={() => setSplash(false)} />}
-            <div className={`min-h-screen bg-black ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+            <div className={`min-h-screen bg-white ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
               <Navbar />
               <CartDrawer />
               <main className="min-h-screen">

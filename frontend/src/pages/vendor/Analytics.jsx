@@ -32,7 +32,7 @@ export default function VendorAnalytics() {
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-analytics">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-white/5"><ChevronLeft className="w-5 h-5" /></Link>
+          <Link to="/vendor/dashboard" className="p-2 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></Link>
           <h1 className="text-xl font-bold flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#25D366]" /> Analytics</h1>
         </div>
 
@@ -60,7 +60,7 @@ export default function VendorAnalytics() {
             {products.map(p => (
               <div key={p.id} className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-24 truncate flex-shrink-0">{p.name}</span>
-                <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden">
+                <div className="flex-1 h-6 bg-gray-50 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-[#25D366] to-[#128C7E] rounded-full transition-all duration-700 flex items-center justify-end pr-2" style={{ width: `${Math.max(5, (p.click_count / maxClicks) * 100)}%` }}>
                     <span className="text-[10px] font-bold">{p.click_count}</span>
                   </div>
@@ -75,12 +75,12 @@ export default function VendorAnalytics() {
           <h2 className="font-bold mb-4">Top produits</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="text-xs text-gray-500 uppercase border-b border-white/5">
+              <thead><tr className="text-xs text-gray-500 uppercase border-b border-gray-200">
                 <th className="text-left py-2 px-2">#</th><th className="text-left py-2 px-2">Produit</th><th className="text-right py-2 px-2">Clics</th><th className="text-right py-2 px-2">Prix</th><th className="text-right py-2 px-2">Stock</th>
               </tr></thead>
               <tbody>
                 {products.slice(0, 10).map((p, i) => (
-                  <tr key={p.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
+                  <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2.5 px-2 text-gray-500">{i + 1}</td>
                     <td className="py-2.5 px-2 font-medium truncate max-w-[200px]">{p.name}</td>
                     <td className="py-2.5 px-2 text-right text-[#25D366] font-semibold">{p.click_count}</td>

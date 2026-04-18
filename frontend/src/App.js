@@ -30,6 +30,17 @@ import VendorSubscription from './pages/vendor/Subscription';
 import VendorProfile from './pages/vendor/Profile';
 import VendorOnboarding from './pages/vendor/Onboarding';
 import VendorNotifications from './pages/vendor/Notifications';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminVendors from './pages/admin/Vendors';
+import AdminCategories from './pages/admin/Categories';
+import AdminKeys from './pages/admin/Keys';
+import AdminClaims, { AdminClaimDetail } from './pages/admin/Claims';
+import AdminReviews from './pages/admin/Reviews';
+import AdminFlashSales from './pages/admin/FlashSales';
+import AdminLogs, { AdminSearchMisses } from './pages/admin/Logs';
+import EmployeeClaims, { EmployeeClaimDetail } from './pages/employee/Claims';
+import EmployeeReviews from './pages/employee/Reviews';
 import './App.css';
 
 function SplashScreen({ onDone }) {
@@ -88,7 +99,22 @@ export default function App() {
                   <Route path="/vendor/profile" element={<ProtectedRoute roles={['vendor']}><VendorProfile /></ProtectedRoute>} />
                   <Route path="/vendor/onboarding" element={<ProtectedRoute roles={['vendor']}><VendorOnboarding /></ProtectedRoute>} />
                   <Route path="/vendor/notifications" element={<ProtectedRoute roles={['vendor']}><VendorNotifications /></ProtectedRoute>} />
-                  {/* Phase 4: admin, employee dashboards */}
+                  {/* Admin Dashboard */}
+                  <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
+                  <Route path="/admin/vendors" element={<ProtectedRoute roles={['admin']}><AdminVendors /></ProtectedRoute>} />
+                  <Route path="/admin/categories" element={<ProtectedRoute roles={['admin']}><AdminCategories /></ProtectedRoute>} />
+                  <Route path="/admin/keys" element={<ProtectedRoute roles={['admin']}><AdminKeys /></ProtectedRoute>} />
+                  <Route path="/admin/claims" element={<ProtectedRoute roles={['admin']}><AdminClaims /></ProtectedRoute>} />
+                  <Route path="/admin/claims/:id" element={<ProtectedRoute roles={['admin']}><AdminClaimDetail /></ProtectedRoute>} />
+                  <Route path="/admin/reviews" element={<ProtectedRoute roles={['admin']}><AdminReviews /></ProtectedRoute>} />
+                  <Route path="/admin/flash-sales" element={<ProtectedRoute roles={['admin']}><AdminFlashSales /></ProtectedRoute>} />
+                  <Route path="/admin/logs" element={<ProtectedRoute roles={['admin']}><AdminLogs /></ProtectedRoute>} />
+                  <Route path="/admin/search-misses" element={<ProtectedRoute roles={['admin']}><AdminSearchMisses /></ProtectedRoute>} />
+                  {/* Employee Dashboard */}
+                  <Route path="/employee/claims" element={<ProtectedRoute roles={['employee']}><EmployeeClaims /></ProtectedRoute>} />
+                  <Route path="/employee/claims/:id" element={<ProtectedRoute roles={['employee']}><EmployeeClaimDetail /></ProtectedRoute>} />
+                  <Route path="/employee/reviews" element={<ProtectedRoute roles={['employee']}><EmployeeReviews /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

@@ -109,6 +109,9 @@ export const featuredProducts = {
 export const accessKeys = {
   activate: (data) => api.post('/v1/access-keys/activate', data),
   history: (vendorId, params) => api.get(`/v1/access-keys/history/${vendorId}`, { params }),
+  list: (params) => api.get('/v1/access-keys', { params }),
+  generate: (data) => api.post('/v1/access-keys/generate', data),
+  blacklist: (id) => api.put(`/v1/access-keys/${id}/blacklist`),
 };
 
 export const claims = {
@@ -116,6 +119,29 @@ export const claims = {
   list: (params) => api.get('/v1/claims', { params }),
   get: (id) => api.get(`/v1/claims/${id}`),
   addMessage: (id, data) => api.post(`/v1/claims/${id}/messages`, data),
+  assign: (id, data) => api.put(`/v1/claims/${id}/assign`, data),
+  updateStatus: (id, data) => api.put(`/v1/claims/${id}/status`, data),
+};
+
+export const flashSalesAdmin = {
+  list: (params) => api.get('/v1/flash-sales', { params }),
+  create: (data) => api.post('/v1/flash-sales', data),
+  deactivate: (id) => api.put(`/v1/flash-sales/${id}/deactivate`),
+  delete: (id) => api.delete(`/v1/flash-sales/${id}`),
+};
+
+export const admin = {
+  dashboard: () => api.get('/v1/admin/dashboard'),
+  logs: (params) => api.get('/v1/admin/logs', { params }),
+  history: (params) => api.get('/v1/admin/history', { params }),
+  searchMisses: (params) => api.get('/v1/admin/search-misses', { params }),
+};
+
+export const users = {
+  list: (params) => api.get('/v1/users', { params }),
+  get: (id) => api.get(`/v1/users/${id}`),
+  updateStatus: (id, data) => api.put(`/v1/users/${id}/status`, data),
+  delete: (id) => api.delete(`/v1/users/${id}`),
 };
 
 export default api;

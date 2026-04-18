@@ -41,6 +41,7 @@ import AdminFlashSales from './pages/admin/FlashSales';
 import AdminLogs, { AdminSearchMisses } from './pages/admin/Logs';
 import EmployeeClaims, { EmployeeClaimDetail } from './pages/employee/Claims';
 import EmployeeReviews from './pages/employee/Reviews';
+import { Toaster } from 'sonner';
 import './App.css';
 
 function SplashScreen({ onDone }) {
@@ -119,6 +120,7 @@ export default function App() {
                 </Routes>
               </main>
               <Footer />
+              <Toaster position="top-center" richColors closeButton />
             </div>
           </CartProvider>
         </AuthProvider>

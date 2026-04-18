@@ -123,6 +123,7 @@ export function ClientClaimDetail() {
     setLoading(false);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchClaim(); }, [id]);
 
   const sendMsg = async (e) => {

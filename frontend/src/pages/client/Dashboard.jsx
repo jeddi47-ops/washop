@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLang } from '../../contexts/LangContext';
 import { orders, wishlist, notifications } from '../../lib/api';
-import { ShoppingBag, Heart, Bell, User, MessageSquare, ChevronRight, Package, Clock } from 'lucide-react';
+import { ShoppingBag, Heart, Bell, User, MessageSquare, ChevronRight, Package, Clock, Star } from 'lucide-react';
 
 const statusColor = { pending: 'bg-gray-500/20 text-gray-400', whatsapp_redirected: 'bg-blue-500/20 text-blue-400', confirmed: 'bg-[#25D366]/20 text-[#25D366]', cancelled: 'bg-red-500/20 text-red-400' };
 const statusLabel = { pending: 'En attente', whatsapp_redirected: 'WhatsApp', confirmed: 'Confirme', cancelled: 'Annule' };
@@ -35,6 +35,7 @@ export default function ClientDashboard() {
 
   const shortcuts = [
     { icon: <Package className="w-5 h-5" />, label: 'Mes commandes', to: '/client/orders' },
+    { icon: <Star className="w-5 h-5" />, label: 'Laisser un avis', to: '/client/orders', hint: 'Depuis une commande' },
     { icon: <Heart className="w-5 h-5" />, label: 'Wishlist', to: '/client/wishlist' },
     { icon: <Bell className="w-5 h-5" />, label: 'Notifications', to: '/client/notifications' },
     { icon: <MessageSquare className="w-5 h-5" />, label: 'Reclamations', to: '/client/claims' },

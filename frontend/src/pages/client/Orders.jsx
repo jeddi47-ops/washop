@@ -28,6 +28,7 @@ export default function ClientOrders() {
     setLoading(false);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetch(1); }, [filter]);
 
   const filters = [
@@ -157,8 +158,8 @@ export function ClientOrderDetail() {
               <MessageCircle className="w-5 h-5" /> Reouvrir WhatsApp
             </a>
           )}
-          {order.status === 'confirmed' && (
-            <button onClick={() => setShowReview(true)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
+          {order.status !== 'cancelled' && (
+            <button onClick={() => setShowReview(true)} className="btn-secondary flex-1 flex items-center justify-center gap-2" data-testid="leave-review-btn">
               <Star className="w-5 h-5" /> Laisser un avis
             </button>
           )}

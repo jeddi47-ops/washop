@@ -29,7 +29,23 @@ Build Washop frontend + backend - WhatsApp-based marketplace platform.
 - [x] Footer
 - [x] Mobile-first responsive
 
-### Remaining Phases
-- Phase 2: Client Dashboard (orders, wishlist, notifications, claims, profile)
-- Phase 3: Vendor Dashboard (products CRUD, orders, analytics, subscription, onboarding)
-- Phase 4: Admin Dashboard + Employee Dashboard
+### Phase 2-4 (April 2026)
+- [x] Client Dashboard (orders, wishlist, notifications, claims, profile, reviews)
+- [x] Vendor Dashboard (products CRUD, orders, analytics, subscription, onboarding, notifications)
+- [x] Admin Dashboard (users, vendors, categories, keys, claims, reviews, flash-sales, logs)
+- [x] Employee Dashboard (claims, reviews)
+- [x] UI transformed to white marketplace theme
+- [x] Netlify deployment (SPA redirects, CI build)
+- [x] Chariow subscription links integration
+- [x] Client review flow fixed (works on any active order)
+
+### Hotfixes (Feb 2026)
+- [x] Vendor order status update: previously vendors could only confirm `pending` orders. Fixed to allow confirming both `pending` AND `whatsapp_redirected` (which is the most common state after client WhatsApp redirection).
+- [x] Added sonner Toaster globally with success/error feedback on order status updates.
+- [x] ESLint `react-hooks/exhaustive-deps` warnings silenced on `Home.jsx`, `client/Orders.jsx`, `client/Claims.jsx` — Netlify CI build now passes cleanly.
+
+### Remaining Backlog
+- [ ] E2E WhatsApp redirection format verification
+- [ ] Pagination controls on product/order listings
+- [ ] SendGrid sender verification (user task in SendGrid dashboard)
+

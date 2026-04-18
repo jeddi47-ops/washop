@@ -273,6 +273,7 @@ function CatalogSection() {
   };
 
   useEffect(() => { categoriesApi.list({ limit: 50 }).then(r => setCats(r.data.data || [])).catch(() => {}); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchProducts(1); }, [catFilter, sort, sortOrder]);
 
   return (

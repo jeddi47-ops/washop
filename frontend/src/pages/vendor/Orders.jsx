@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { orders as ordersApi } from '../../lib/api';
-import { ChevronLeft, Package, Clock, MessageCircle, Check, XCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, Package, MessageCircle, Check, XCircle, Loader2 } from 'lucide-react';
 
 const statusColor = { pending: 'bg-gray-500/20 text-gray-400', whatsapp_redirected: 'bg-blue-500/20 text-blue-400', confirmed: 'bg-[#25D366]/20 text-[#25D366]', cancelled: 'bg-red-500/20 text-red-400' };
 const statusLabel = { pending: 'En attente', whatsapp_redirected: 'WhatsApp', confirmed: 'Confirme', cancelled: 'Annule' };
@@ -12,8 +13,9 @@ export default function VendorOrders() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [updatingId, setUpdatingId] = useState('');
 
-  const fetch = async (p = 1) => {
+  const fetchList = useCallback(async (p = 1) => {
     setLoading(true);
     try {
       const params = { page: p, limit: 20 };
@@ -22,17 +24,24 @@ export default function VendorOrders() {
       setItems(p === 1 ? (data.data || []) : prev => [...prev, ...(data.data || [])]);
       setTotal(data.total || 0);
       setPage(p);
-    } catch {}
+    } catch (e) {
+      toast.error('Erreur lors du chargement des commandes');
+    }
     setLoading(false);
-  };
+  }, [filter]);
 
-  useEffect(() => { fetch(1); }, [filter]);
+  useEffect(() => { fetchList(1); }, [fetchList]);
 
   const updateStatus = async (id, status) => {
+    setUpdatingId(id + status);
     try {
       await ordersApi.updateStatus(id, { status });
       setItems(prev => prev.map(o => o.id === id ? { ...o, status } : o));
-    } catch {}
+      toast.success(`Commande ${status === 'confirmed' ? 'confirmée' : status === 'cancelled' ? 'annulée' : 'mise à jour'}`);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || 'Échec de la mise à jour');
+    }
+    setUpdatingId('');
   };
 
   return (
@@ -45,19 +54,20 @@ export default function VendorOrders() {
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6">
           {[{ v: '', l: 'Tous' }, { v: 'pending', l: 'En attente' }, { v: 'whatsapp_redirected', l: 'WhatsApp' }, { v: 'confirmed', l: 'Confirme' }, { v: 'cancelled', l: 'Annule' }].map(f => (
-            <button key={f.v} onClick={() => setFilter(f.v)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${filter === f.v ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-400'}`}>{f.l}</button>
+            <button key={f.v} data-testid={`vorders-filter-${f.v || 'all'}`} onClick={() => setFilter(f.v)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${filter === f.v ? 'bg-[#25D366] text-white' : 'bg-gray-50 text-gray-400'}`}>{f.l}</button>
           ))}
         </div>
 
         {loading && items.length === 0 ? <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 animate-shimmer rounded-xl" />)}</div> :
         items.length === 0 ? <div className="text-center py-20"><Package className="w-16 h-16 text-gray-400 mx-auto mb-4" /><p className="text-gray-600">Aucune commande</p></div> :
         <div className="space-y-3">
-          {/* Desktop table header */}
           <div className="hidden md:grid md:grid-cols-6 gap-3 px-4 text-xs text-gray-500 font-semibold uppercase">
             <span>Commande</span><span>Articles</span><span>Total</span><span>Date</span><span>Statut</span><span>Actions</span>
           </div>
           {items.map(o => {
             const total = o.items?.reduce((s, i) => s + (i.price_at_time || 0) * (i.quantity || 1), 0) || 0;
+            const canConfirm = o.status === 'pending' || o.status === 'whatsapp_redirected';
+            const canCancel = o.status !== 'cancelled' && o.status !== 'confirmed';
             return (
               <div key={o.id} className="glass p-4 md:grid md:grid-cols-6 md:items-center gap-3" data-testid={`vorder-${o.id}`}>
                 <Link to={`/vendor/orders/${o.id}`} className="text-sm font-mono text-[#25D366] hover:underline">#{o.id?.slice(-8)}</Link>
@@ -66,13 +76,21 @@ export default function VendorOrders() {
                 <span className="text-xs text-gray-500">{new Date(o.created_at).toLocaleDateString()}</span>
                 <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[o.status]}`}>{statusLabel[o.status]}</span>
                 <div className="flex gap-1 mt-2 md:mt-0">
-                  {o.status === 'pending' && <button onClick={() => updateStatus(o.id, 'confirmed')} className="p-1.5 rounded-md bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition" title="Confirmer"><Check className="w-4 h-4" /></button>}
-                  {o.status !== 'cancelled' && o.status !== 'confirmed' && <button onClick={() => updateStatus(o.id, 'cancelled')} className="p-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 transition" title="Annuler"><XCircle className="w-4 h-4" /></button>}
+                  {canConfirm && (
+                    <button data-testid={`vorder-confirm-${o.id}`} onClick={() => updateStatus(o.id, 'confirmed')} disabled={updatingId === o.id + 'confirmed'} className="p-1.5 rounded-md bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition disabled:opacity-50" title="Confirmer">
+                      {updatingId === o.id + 'confirmed' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    </button>
+                  )}
+                  {canCancel && (
+                    <button data-testid={`vorder-cancel-${o.id}`} onClick={() => updateStatus(o.id, 'cancelled')} disabled={updatingId === o.id + 'cancelled'} className="p-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 transition disabled:opacity-50" title="Annuler">
+                      {updatingId === o.id + 'cancelled' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
-          {items.length < total && <button onClick={() => fetch(page + 1)} className="btn-secondary w-full">Charger plus</button>}
+          {items.length < total && <button onClick={() => fetchList(page + 1)} className="btn-secondary w-full">Charger plus</button>}
         </div>}
       </div>
     </div>
@@ -85,11 +103,17 @@ export function VendorOrderDetail() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState('');
 
-  useEffect(() => { ordersApi.get(id).then(r => { setOrder(r.data.data); setLoading(false); }).catch(() => setLoading(false)); }, [id]);
+  useEffect(() => { ordersApi.get(id).then(r => { setOrder(r.data.data); setLoading(false); }).catch(() => { toast.error('Commande introuvable'); setLoading(false); }); }, [id]);
 
   const updateStatus = async (status) => {
     setUpdating(status);
-    try { await ordersApi.updateStatus(id, { status }); setOrder(prev => ({ ...prev, status })); } catch {}
+    try {
+      await ordersApi.updateStatus(id, { status });
+      setOrder(prev => ({ ...prev, status }));
+      toast.success(`Commande ${status === 'confirmed' ? 'confirmée' : 'annulée'}`);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || 'Échec de la mise à jour');
+    }
     setUpdating('');
   };
 
@@ -97,6 +121,8 @@ export function VendorOrderDetail() {
   if (!order) return <div className="min-h-screen pt-20 flex items-center justify-center text-gray-600">Commande non trouvee</div>;
 
   const total = order.items?.reduce((s, i) => s + (i.price_at_time || 0) * (i.quantity || 1), 0) || 0;
+  const canConfirm = order.status === 'pending' || order.status === 'whatsapp_redirected';
+  const canCancel = order.status !== 'cancelled' && order.status !== 'confirmed';
 
   return (
     <div className="min-h-screen pt-20 pb-10 px-4 animate-fade-in" data-testid="vendor-order-detail">
@@ -112,7 +138,7 @@ export function VendorOrderDetail() {
           <div className="space-y-3">{order.items?.map((item, i) => (
             <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
               <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0" />
-              <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">Produit</p><p className="text-xs text-gray-500">x{item.quantity} a {item.price_at_time}$</p></div>
+              <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{item.product_name || 'Produit'}</p><p className="text-xs text-gray-500">x{item.quantity} a {item.price_at_time}$</p></div>
               <span className="text-sm font-bold text-[#25D366]">{(item.price_at_time * item.quantity).toFixed(2)}$</span>
             </div>
           ))}</div>
@@ -120,8 +146,8 @@ export function VendorOrderDetail() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          {order.status === 'pending' && <button onClick={() => updateStatus('confirmed')} disabled={!!updating} className="btn-primary flex-1 flex items-center justify-center gap-2">{updating === 'confirmed' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Confirmer</button>}
-          {order.status !== 'cancelled' && order.status !== 'confirmed' && <button onClick={() => updateStatus('cancelled')} disabled={!!updating} className="btn-danger flex-1 flex items-center justify-center gap-2">{updating === 'cancelled' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} Annuler</button>}
+          {canConfirm && <button data-testid="vorder-detail-confirm" onClick={() => updateStatus('confirmed')} disabled={!!updating} className="btn-primary flex-1 flex items-center justify-center gap-2">{updating === 'confirmed' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Confirmer</button>}
+          {canCancel && <button data-testid="vorder-detail-cancel" onClick={() => updateStatus('cancelled')} disabled={!!updating} className="btn-danger flex-1 flex items-center justify-center gap-2">{updating === 'cancelled' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} Annuler</button>}
           {order.whatsapp_url && <a href={order.whatsapp_url} target="_blank" rel="noreferrer" className="btn-secondary flex-1 flex items-center justify-center gap-2"><MessageCircle className="w-4 h-4" /> WhatsApp</a>}
         </div>
       </div>

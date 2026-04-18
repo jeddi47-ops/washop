@@ -50,6 +50,12 @@ export default function VendorSubscription() {
   const isExpired = vendor && !vendor.is_active;
   const plan = vendor?.subscription_type || 'basic';
 
+  const checkoutLinks = {
+    Basic: { monthly: 'https://nzaofhms.mychariow.shop/prd_fih09v/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_vh8k9t/checkout' },
+    Premium: { monthly: 'https://nzaofhms.mychariow.shop/prd_u4c5d3/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_w89k2c/checkout' },
+    Extra: { monthly: 'https://nzaofhms.mychariow.shop/prd_mtxh4x/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_dlwst0/checkout' },
+  };
+
   const plans = [
     { name: 'Basic', price: '10$/mois', features: ['15 produits max', 'Boutique visible', 'Rapport mensuel'], missing: ['Priorite recherche', 'Produit mis en avant', 'Rapport recherches'] },
     { name: 'Premium', price: '20$/mois', features: ['Produits illimites', 'Priorite recherche', 'Produit mis en avant/jour', 'Rapport mensuel'], missing: ['Email promo clients', 'Rapport recherches'] },
@@ -111,9 +117,10 @@ export default function VendorSubscription() {
                   </div>
                   <p className="text-xl font-bold text-[#25D366] mb-3">{p.price}</p>
                   <div className="space-y-2">
-                    {p.features.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><Check className="w-3 h-3 text-[#25D366] flex-shrink-0" /><span className="text-gray-300">{f}</span></div>)}
+                    {p.features.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><Check className="w-3 h-3 text-[#25D366] flex-shrink-0" /><span className="text-gray-600">{f}</span></div>)}
                     {p.missing.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><XIcon className="w-3 h-3 text-gray-500 flex-shrink-0" /><span className="text-gray-500">{f}</span></div>)}
                   </div>
+                  {!isCurrent && <a href={checkoutLinks[p.name]?.monthly} target="_blank" rel="noreferrer" className="mt-4 block text-center py-2 rounded-lg text-xs font-semibold btn-primary">Souscrire</a>}
                 </div>
               );
             })}

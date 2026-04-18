@@ -148,6 +148,12 @@ function FeaturedSection() {
 function PricingSection() {
   const { t } = useLang();
   const [annual, setAnnual] = useState(false);
+  const checkoutLinks = {
+    Basic: { monthly: 'https://nzaofhms.mychariow.shop/prd_fih09v/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_vh8k9t/checkout' },
+    Premium: { monthly: 'https://nzaofhms.mychariow.shop/prd_u4c5d3/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_w89k2c/checkout' },
+    Extra: { monthly: 'https://nzaofhms.mychariow.shop/prd_mtxh4x/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_dlwst0/checkout' },
+  };
+
   const plans = [
     { name: 'Basic', price: annual ? 96 : 10, icon: <ShoppingBag className="w-6 h-6" />, color: 'gray', features: [{ text: `15 ${t.pricing.products}`, ok: true }, { text: t.pricing.search_priority, ok: false }, { text: t.pricing.daily_featured, ok: false }, { text: t.pricing.promoted_7, ok: false }, { text: t.pricing.search_misses, ok: false }, { text: t.pricing.promo_email, ok: false }, { text: t.pricing.monthly_report, ok: true }] },
     { name: 'Premium', price: annual ? 192 : 20, icon: <Crown className="w-6 h-6" />, color: 'blue', features: [{ text: `${t.pricing.unlimited} ${t.pricing.products}`, ok: true }, { text: t.pricing.search_priority, ok: true }, { text: t.pricing.daily_featured, ok: true }, { text: t.pricing.promoted_7, ok: false }, { text: t.pricing.search_misses, ok: false }, { text: t.pricing.promo_email, ok: false }, { text: t.pricing.monthly_report, ok: true }] },
@@ -180,7 +186,7 @@ function PricingSection() {
                   </div>
                 ))}
               </div>
-              <Link to="/register" className={`mt-6 block text-center py-2.5 rounded-lg font-semibold text-sm transition ${plan.recommended ? 'btn-primary' : 'btn-secondary'}`}>{t.pricing.choose}</Link>
+              <a href={checkoutLinks[plan.name]?.[annual ? 'annual' : 'monthly']} target="_blank" rel="noreferrer" className={`mt-6 block text-center py-2.5 rounded-lg font-semibold text-sm transition ${plan.recommended ? 'btn-primary' : 'btn-secondary'}`}>{t.pricing.choose}</a>
             </div>
           ))}
         </div>

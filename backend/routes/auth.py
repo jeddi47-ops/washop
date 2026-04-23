@@ -6,7 +6,7 @@ import secrets
 from database import db
 from middleware.auth import (
     hash_password, verify_password, create_access_token, create_refresh_token,
-    get_current_user, check_brute_force, record_failed_attempt, clear_failed_attempts,
+    get_current_user, get_user_any_status, check_brute_force, record_failed_attempt, clear_failed_attempts,
     get_jwt_secret, JWT_ALGORITHM
 )
 from models.schemas import (
@@ -131,7 +131,9 @@ async def logout(response: Response, user=Depends(get_current_user)):
 
 
 @router.get("/me")
-async def get_me(user=Depends(get_current_user)):
+async def get_me(user=Depends(get_user_any_status)):
+    # Lenient: returns the user even if banned/suspended so that the frontend
+    # can show a dedicated ban/suspension screen while the session stays alive.
     return success_response(data=user)
 
 

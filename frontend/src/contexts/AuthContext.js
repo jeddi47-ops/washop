@@ -12,7 +12,10 @@ export function AuthProvider({ children }) {
     if (!token) { setLoading(false); return; }
     try {
       const { data } = await authApi.me();
+      // /auth/me now returns the user even if banned/suspended so we keep the
+      // session alive and let App.js render a dedicated status screen.
       setUser(data.data);
+      localStorage.setItem('washop_user', JSON.stringify(data.data));
     } catch {
       localStorage.removeItem('washop_token');
       localStorage.removeItem('washop_user');

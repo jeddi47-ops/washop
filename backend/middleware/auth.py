@@ -44,7 +44,9 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 
-async def get_current_user(request: Request) -> dict:
+async def _decode_and_fetch_user(request: Request) -> dict:
+    """Decode JWT and fetch user from DB, WITHOUT checking status.
+    Shared by get_current_user (strict) and get_user_any_status (lenient)."""
     token = request.cookies.get("access_token")
     if not token:
         auth_header = request.headers.get("Authorization", "")
@@ -60,10 +62,6 @@ async def get_current_user(request: Request) -> dict:
         user = await db.users.find_one({"_id": ObjectId(payload["sub"]), "deleted_at": None})
         if not user:
             raise HTTPException(status_code=401, detail="Utilisateur non trouvé")
-        if user.get("status") == "banned":
-            raise HTTPException(status_code=403, detail="Compte banni")
-        if user.get("status") == "suspended":
-            raise HTTPException(status_code=403, detail="Compte suspendu")
         user["id"] = str(user["_id"])
         del user["_id"]
         user.pop("password_hash", None)
@@ -72,8 +70,27 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Token expiré")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token invalide")
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(status_code=401, detail="Erreur d'authentification")
+
+
+async def get_current_user(request: Request) -> dict:
+    """Strict: blocks banned and suspended users from ALL protected actions."""
+    user = await _decode_and_fetch_user(request)
+    if user.get("status") == "banned":
+        raise HTTPException(status_code=403, detail="Compte banni")
+    if user.get("status") == "suspended":
+        raise HTTPException(status_code=403, detail="Compte suspendu")
+    return user
+
+
+async def get_user_any_status(request: Request) -> dict:
+    """Lenient: returns user regardless of status (active/suspended/banned).
+    Used ONLY by /auth/me so that the frontend can display a dedicated
+    ban/suspension screen while keeping the session intact."""
+    return await _decode_and_fetch_user(request)
 
 
 def role_required(*roles):

@@ -72,14 +72,42 @@ class UserStatusUpdate(UserBaseModel):
 @router.put("/{user_id}/status")
 async def update_user_status(user_id: str, data: UserStatusUpdate, user=Depends(role_required("admin"))):
     try:
-        result = await db.users.update_one(
-            {"_id": ObjectId(user_id), "deleted_at": None},
-            {"$set": {"status": data.status.value}}
-        )
+        target = await db.users.find_one({"_id": ObjectId(user_id), "deleted_at": None})
     except Exception:
         raise HTTPException(status_code=400, detail="ID utilisateur invalide")
-    if result.matched_count == 0:
+    if not target:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    new_status = data.status.value
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"status": new_status}}
+    )
+
+    # Propagate to vendor doc so the shop becomes invisible while the owner
+    # is suspended or banned (and can be restored to its previous state
+    # when the admin sets the status back to "active").
+    if target.get("role") == "vendor":
+        vendor = await db.vendors.find_one({"user_id": user_id, "deleted_at": None})
+        if vendor:
+            if new_status in ("suspended", "banned"):
+                # Only memorise the previous value the first time we hide the shop,
+                # otherwise repeated suspensions would overwrite it with False.
+                update = {"is_active": False}
+                if "is_active_before_suspension" not in vendor:
+                    update["is_active_before_suspension"] = bool(vendor.get("is_active", True))
+                await db.vendors.update_one({"_id": vendor["_id"]}, {"$set": update})
+            elif new_status == "active":
+                # Restore previous visibility (defaults to True if unknown) and
+                # forget the memorised value so a future suspension snapshots fresh.
+                previous = vendor.get("is_active_before_suspension", True)
+                await db.vendors.update_one(
+                    {"_id": vendor["_id"]},
+                    {
+                        "$set": {"is_active": bool(previous)},
+                        "$unset": {"is_active_before_suspension": ""},
+                    }
+                )
 
     # Log admin action
     await db.admin_logs.insert_one({
@@ -87,11 +115,11 @@ async def update_user_status(user_id: str, data: UserStatusUpdate, user=Depends(
         "action_type": "update_user_status",
         "target_type": "user",
         "target_id": user_id,
-        "description": f"Statut changé en {data.status.value}",
+        "description": f"Statut changé en {new_status}",
         "created_at": utc_now()
     })
 
-    return success_response(message=f"Statut utilisateur changé en {data.status.value}")
+    return success_response(message=f"Statut utilisateur changé en {new_status}")
 
 
 @router.delete("/{user_id}")

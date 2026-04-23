@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { LangProvider } from './contexts/LangContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/shared/CartDrawer';
+import AccountStatusScreen from './components/layout/AccountStatusScreen';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import ShopPage from './pages/ShopPage';
@@ -68,63 +69,78 @@ export default function App() {
         <AuthProvider>
           <CartProvider>
             {splash && <SplashScreen onDone={() => setSplash(false)} />}
-            <div className={`min-h-screen bg-white ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
-              <Navbar />
-              <CartDrawer />
-              <main className="min-h-screen">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/boutiques/:slug" element={<ShopPage />} />
-                  <Route path="/search" element={<SearchPage />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  {/* Client Dashboard */}
-                  <Route path="/client/dashboard" element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
-                  <Route path="/client/orders" element={<ProtectedRoute roles={['client']}><ClientOrders /></ProtectedRoute>} />
-                  <Route path="/client/orders/:id" element={<ProtectedRoute roles={['client']}><ClientOrderDetail /></ProtectedRoute>} />
-                  <Route path="/client/wishlist" element={<ProtectedRoute roles={['client']}><ClientWishlist /></ProtectedRoute>} />
-                  <Route path="/client/notifications" element={<ProtectedRoute roles={['client']}><ClientNotifications /></ProtectedRoute>} />
-                  <Route path="/client/claims" element={<ProtectedRoute roles={['client']}><ClientClaims /></ProtectedRoute>} />
-                  <Route path="/client/claims/:id" element={<ProtectedRoute roles={['client']}><ClientClaimDetail /></ProtectedRoute>} />
-                  <Route path="/client/profile" element={<ProtectedRoute roles={['client']}><ClientProfile /></ProtectedRoute>} />
-                  {/* Vendor Dashboard */}
-                  <Route path="/vendor/dashboard" element={<ProtectedRoute roles={['vendor']}><VendorDashboard /></ProtectedRoute>} />
-                  <Route path="/vendor/products" element={<ProtectedRoute roles={['vendor']}><VendorProducts /></ProtectedRoute>} />
-                  <Route path="/vendor/orders" element={<ProtectedRoute roles={['vendor']}><VendorOrders /></ProtectedRoute>} />
-                  <Route path="/vendor/orders/:id" element={<ProtectedRoute roles={['vendor']}><VendorOrderDetail /></ProtectedRoute>} />
-                  <Route path="/vendor/analytics" element={<ProtectedRoute roles={['vendor']}><VendorAnalytics /></ProtectedRoute>} />
-                  <Route path="/vendor/subscription" element={<ProtectedRoute roles={['vendor']}><VendorSubscription /></ProtectedRoute>} />
-                  <Route path="/vendor/profile" element={<ProtectedRoute roles={['vendor']}><VendorProfile /></ProtectedRoute>} />
-                  <Route path="/vendor/onboarding" element={<ProtectedRoute roles={['vendor']}><VendorOnboarding /></ProtectedRoute>} />
-                  <Route path="/vendor/notifications" element={<ProtectedRoute roles={['vendor']}><VendorNotifications /></ProtectedRoute>} />
-                  {/* Admin Dashboard */}
-                  <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-                  <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
-                  <Route path="/admin/vendors" element={<ProtectedRoute roles={['admin']}><AdminVendors /></ProtectedRoute>} />
-                  <Route path="/admin/categories" element={<ProtectedRoute roles={['admin']}><AdminCategories /></ProtectedRoute>} />
-                  <Route path="/admin/keys" element={<ProtectedRoute roles={['admin']}><AdminKeys /></ProtectedRoute>} />
-                  <Route path="/admin/claims" element={<ProtectedRoute roles={['admin']}><AdminClaims /></ProtectedRoute>} />
-                  <Route path="/admin/claims/:id" element={<ProtectedRoute roles={['admin']}><AdminClaimDetail /></ProtectedRoute>} />
-                  <Route path="/admin/reviews" element={<ProtectedRoute roles={['admin']}><AdminReviews /></ProtectedRoute>} />
-                  <Route path="/admin/flash-sales" element={<ProtectedRoute roles={['admin']}><AdminFlashSales /></ProtectedRoute>} />
-                  <Route path="/admin/logs" element={<ProtectedRoute roles={['admin']}><AdminLogs /></ProtectedRoute>} />
-                  <Route path="/admin/search-misses" element={<ProtectedRoute roles={['admin']}><AdminSearchMisses /></ProtectedRoute>} />
-                  {/* Employee Dashboard */}
-                  <Route path="/employee/claims" element={<ProtectedRoute roles={['employee']}><EmployeeClaims /></ProtectedRoute>} />
-                  <Route path="/employee/claims/:id" element={<ProtectedRoute roles={['employee']}><EmployeeClaimDetail /></ProtectedRoute>} />
-                  <Route path="/employee/reviews" element={<ProtectedRoute roles={['employee']}><EmployeeReviews /></ProtectedRoute>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-              <Toaster position="top-center" richColors closeButton />
-            </div>
+            <AppShell splash={splash} />
           </CartProvider>
         </AuthProvider>
       </LangProvider>
     </BrowserRouter>
+  );
+}
+
+function AppShell({ splash }) {
+  const { user } = useAuth();
+
+  // If the logged-in user is banned or suspended, we deliberately keep the
+  // session alive (per product requirement) but replace the entire UI with
+  // a dedicated status screen. No navbar, no routes, no footer.
+  if (user && (user.status === 'banned' || user.status === 'suspended')) {
+    return <AccountStatusScreen status={user.status} />;
+  }
+
+  return (
+    <div className={`min-h-screen bg-white ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+      <Navbar />
+      <CartDrawer />
+      <main className="min-h-screen">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/boutiques/:slug" element={<ShopPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Client Dashboard */}
+          <Route path="/client/dashboard" element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
+          <Route path="/client/orders" element={<ProtectedRoute roles={['client']}><ClientOrders /></ProtectedRoute>} />
+          <Route path="/client/orders/:id" element={<ProtectedRoute roles={['client']}><ClientOrderDetail /></ProtectedRoute>} />
+          <Route path="/client/wishlist" element={<ProtectedRoute roles={['client']}><ClientWishlist /></ProtectedRoute>} />
+          <Route path="/client/notifications" element={<ProtectedRoute roles={['client']}><ClientNotifications /></ProtectedRoute>} />
+          <Route path="/client/claims" element={<ProtectedRoute roles={['client']}><ClientClaims /></ProtectedRoute>} />
+          <Route path="/client/claims/:id" element={<ProtectedRoute roles={['client']}><ClientClaimDetail /></ProtectedRoute>} />
+          <Route path="/client/profile" element={<ProtectedRoute roles={['client']}><ClientProfile /></ProtectedRoute>} />
+          {/* Vendor Dashboard */}
+          <Route path="/vendor/dashboard" element={<ProtectedRoute roles={['vendor']}><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor/products" element={<ProtectedRoute roles={['vendor']}><VendorProducts /></ProtectedRoute>} />
+          <Route path="/vendor/orders" element={<ProtectedRoute roles={['vendor']}><VendorOrders /></ProtectedRoute>} />
+          <Route path="/vendor/orders/:id" element={<ProtectedRoute roles={['vendor']}><VendorOrderDetail /></ProtectedRoute>} />
+          <Route path="/vendor/analytics" element={<ProtectedRoute roles={['vendor']}><VendorAnalytics /></ProtectedRoute>} />
+          <Route path="/vendor/subscription" element={<ProtectedRoute roles={['vendor']}><VendorSubscription /></ProtectedRoute>} />
+          <Route path="/vendor/profile" element={<ProtectedRoute roles={['vendor']}><VendorProfile /></ProtectedRoute>} />
+          <Route path="/vendor/onboarding" element={<ProtectedRoute roles={['vendor']}><VendorOnboarding /></ProtectedRoute>} />
+          <Route path="/vendor/notifications" element={<ProtectedRoute roles={['vendor']}><VendorNotifications /></ProtectedRoute>} />
+          {/* Admin Dashboard */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/vendors" element={<ProtectedRoute roles={['admin']}><AdminVendors /></ProtectedRoute>} />
+          <Route path="/admin/categories" element={<ProtectedRoute roles={['admin']}><AdminCategories /></ProtectedRoute>} />
+          <Route path="/admin/keys" element={<ProtectedRoute roles={['admin']}><AdminKeys /></ProtectedRoute>} />
+          <Route path="/admin/claims" element={<ProtectedRoute roles={['admin']}><AdminClaims /></ProtectedRoute>} />
+          <Route path="/admin/claims/:id" element={<ProtectedRoute roles={['admin']}><AdminClaimDetail /></ProtectedRoute>} />
+          <Route path="/admin/reviews" element={<ProtectedRoute roles={['admin']}><AdminReviews /></ProtectedRoute>} />
+          <Route path="/admin/flash-sales" element={<ProtectedRoute roles={['admin']}><AdminFlashSales /></ProtectedRoute>} />
+          <Route path="/admin/logs" element={<ProtectedRoute roles={['admin']}><AdminLogs /></ProtectedRoute>} />
+          <Route path="/admin/search-misses" element={<ProtectedRoute roles={['admin']}><AdminSearchMisses /></ProtectedRoute>} />
+          {/* Employee Dashboard */}
+          <Route path="/employee/claims" element={<ProtectedRoute roles={['employee']}><EmployeeClaims /></ProtectedRoute>} />
+          <Route path="/employee/claims/:id" element={<ProtectedRoute roles={['employee']}><EmployeeClaimDetail /></ProtectedRoute>} />
+          <Route path="/employee/reviews" element={<ProtectedRoute roles={['employee']}><EmployeeReviews /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
+      <Toaster position="top-center" richColors closeButton />
+    </div>
   );
 }

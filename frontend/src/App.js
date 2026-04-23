@@ -1,54 +1,130 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { LangProvider } from './contexts/LangContext';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import CartDrawer from './components/shared/CartDrawer';
+import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
+import ShopPage from './pages/ShopPage';
+import SearchPage from './pages/SearchPage';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import ClientDashboard from './pages/client/Dashboard';
+import ClientOrders, { ClientOrderDetail } from './pages/client/Orders';
+import ClientWishlist from './pages/client/Wishlist';
+import ClientNotifications from './pages/client/Notifications';
+import ClientClaims, { ClientClaimDetail } from './pages/client/Claims';
+import ClientProfile from './pages/client/Profile';
+import VendorDashboard from './pages/vendor/Dashboard';
+import VendorProducts from './pages/vendor/Products';
+import VendorOrders, { VendorOrderDetail } from './pages/vendor/Orders';
+import VendorAnalytics from './pages/vendor/Analytics';
+import VendorSubscription from './pages/vendor/Subscription';
+import VendorProfile from './pages/vendor/Profile';
+import VendorOnboarding from './pages/vendor/Onboarding';
+import VendorNotifications from './pages/vendor/Notifications';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminVendors from './pages/admin/Vendors';
+import AdminCategories from './pages/admin/Categories';
+import AdminKeys from './pages/admin/Keys';
+import AdminClaims, { AdminClaimDetail } from './pages/admin/Claims';
+import AdminReviews from './pages/admin/Reviews';
+import AdminFlashSales from './pages/admin/FlashSales';
+import AdminLogs, { AdminSearchMisses } from './pages/admin/Logs';
+import EmployeeClaims, { EmployeeClaimDetail } from './pages/employee/Claims';
+import EmployeeReviews from './pages/employee/Reviews';
+import { Toaster } from 'sonner';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
+function SplashScreen({ onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 1200); return () => clearTimeout(t); }, [onDone]);
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
+      <div className="text-center animate-fade-scale">
+        <img src="/logo.png" alt="Washop" className="h-24 w-24 rounded-2xl mx-auto mb-4 object-cover" />
+        <p className="text-xl font-bold">Wa<span className="text-[#25D366]">shop</span></p>
+        <div className="mt-6 w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
+          <div className="h-full bg-[#25D366] rounded-full animate-progress" />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  const [splash, setSplash] = useState(true);
+
+  return (
+    <BrowserRouter>
+      <LangProvider>
+        <AuthProvider>
+          <CartProvider>
+            {splash && <SplashScreen onDone={() => setSplash(false)} />}
+            <div className={`min-h-screen bg-white ${splash ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}>
+              <Navbar />
+              <CartDrawer />
+              <main className="min-h-screen">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products/:id" element={<ProductDetail />} />
+                  <Route path="/boutiques/:slug" element={<ShopPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  {/* Client Dashboard */}
+                  <Route path="/client/dashboard" element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
+                  <Route path="/client/orders" element={<ProtectedRoute roles={['client']}><ClientOrders /></ProtectedRoute>} />
+                  <Route path="/client/orders/:id" element={<ProtectedRoute roles={['client']}><ClientOrderDetail /></ProtectedRoute>} />
+                  <Route path="/client/wishlist" element={<ProtectedRoute roles={['client']}><ClientWishlist /></ProtectedRoute>} />
+                  <Route path="/client/notifications" element={<ProtectedRoute roles={['client']}><ClientNotifications /></ProtectedRoute>} />
+                  <Route path="/client/claims" element={<ProtectedRoute roles={['client']}><ClientClaims /></ProtectedRoute>} />
+                  <Route path="/client/claims/:id" element={<ProtectedRoute roles={['client']}><ClientClaimDetail /></ProtectedRoute>} />
+                  <Route path="/client/profile" element={<ProtectedRoute roles={['client']}><ClientProfile /></ProtectedRoute>} />
+                  {/* Vendor Dashboard */}
+                  <Route path="/vendor/dashboard" element={<ProtectedRoute roles={['vendor']}><VendorDashboard /></ProtectedRoute>} />
+                  <Route path="/vendor/products" element={<ProtectedRoute roles={['vendor']}><VendorProducts /></ProtectedRoute>} />
+                  <Route path="/vendor/orders" element={<ProtectedRoute roles={['vendor']}><VendorOrders /></ProtectedRoute>} />
+                  <Route path="/vendor/orders/:id" element={<ProtectedRoute roles={['vendor']}><VendorOrderDetail /></ProtectedRoute>} />
+                  <Route path="/vendor/analytics" element={<ProtectedRoute roles={['vendor']}><VendorAnalytics /></ProtectedRoute>} />
+                  <Route path="/vendor/subscription" element={<ProtectedRoute roles={['vendor']}><VendorSubscription /></ProtectedRoute>} />
+                  <Route path="/vendor/profile" element={<ProtectedRoute roles={['vendor']}><VendorProfile /></ProtectedRoute>} />
+                  <Route path="/vendor/onboarding" element={<ProtectedRoute roles={['vendor']}><VendorOnboarding /></ProtectedRoute>} />
+                  <Route path="/vendor/notifications" element={<ProtectedRoute roles={['vendor']}><VendorNotifications /></ProtectedRoute>} />
+                  {/* Admin Dashboard */}
+                  <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
+                  <Route path="/admin/vendors" element={<ProtectedRoute roles={['admin']}><AdminVendors /></ProtectedRoute>} />
+                  <Route path="/admin/categories" element={<ProtectedRoute roles={['admin']}><AdminCategories /></ProtectedRoute>} />
+                  <Route path="/admin/keys" element={<ProtectedRoute roles={['admin']}><AdminKeys /></ProtectedRoute>} />
+                  <Route path="/admin/claims" element={<ProtectedRoute roles={['admin']}><AdminClaims /></ProtectedRoute>} />
+                  <Route path="/admin/claims/:id" element={<ProtectedRoute roles={['admin']}><AdminClaimDetail /></ProtectedRoute>} />
+                  <Route path="/admin/reviews" element={<ProtectedRoute roles={['admin']}><AdminReviews /></ProtectedRoute>} />
+                  <Route path="/admin/flash-sales" element={<ProtectedRoute roles={['admin']}><AdminFlashSales /></ProtectedRoute>} />
+                  <Route path="/admin/logs" element={<ProtectedRoute roles={['admin']}><AdminLogs /></ProtectedRoute>} />
+                  <Route path="/admin/search-misses" element={<ProtectedRoute roles={['admin']}><AdminSearchMisses /></ProtectedRoute>} />
+                  {/* Employee Dashboard */}
+                  <Route path="/employee/claims" element={<ProtectedRoute roles={['employee']}><EmployeeClaims /></ProtectedRoute>} />
+                  <Route path="/employee/claims/:id" element={<ProtectedRoute roles={['employee']}><EmployeeClaimDetail /></ProtectedRoute>} />
+                  <Route path="/employee/reviews" element={<ProtectedRoute roles={['employee']}><EmployeeReviews /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Footer />
+              <Toaster position="top-center" richColors closeButton />
+            </div>
+          </CartProvider>
+        </AuthProvider>
+      </LangProvider>
+    </BrowserRouter>
+  );
+}

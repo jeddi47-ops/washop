@@ -1,17 +1,84 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from bson import ObjectId
 from datetime import datetime, timezone
+import logging
 
 from database import db
 from middleware.auth import get_current_user, role_required
 from models.schemas import FlashSaleCreate, FeaturedProductCreate
 from utils.helpers import success_response, paginated_response, validate_pagination, utc_now
+from utils.email_service import send_flash_sale_announcement
+
+logger = logging.getLogger(__name__)
+FRONTEND_URL = __import__("os").environ.get("FRONTEND_URL", "https://washop.netlify.app")
 
 router = APIRouter(prefix="/flash-sales", tags=["Ventes flash"])
 
 
+async def _broadcast_flash_sale(flash_id: str, product_id: str, product_name: str,
+                                 product_price: float, discounted_price: float,
+                                 discount_percentage: int, ends_at: datetime,
+                                 vendor_name: str):
+    """Notify all active clients by email + in-app notification (runs in background)."""
+    try:
+        product_link = f"{FRONTEND_URL}/products/{product_id}"
+        ends_at_str = ends_at.strftime("%d/%m/%Y %Hh%M")
+
+        clients_cursor = db.users.find(
+            {"role": "client", "deleted_at": None, "status": {"$ne": "banned"}},
+            {"_id": 1, "email": 1, "name": 1}
+        )
+        message = f"Vente flash -{discount_percentage}% sur {product_name}"
+        sent_count = 0
+        failed_count = 0
+        notif_docs = []
+        now = utc_now()
+
+        async for client in clients_cursor:
+            client_id = str(client["_id"])
+            notif_docs.append({
+                "user_id": client_id,
+                "message": message,
+                "type": "flash_sale",
+                "link": f"/products/{product_id}",
+                "meta": {"flash_sale_id": flash_id, "product_id": product_id},
+                "is_read": False,
+                "created_at": now,
+            })
+            email = client.get("email")
+            if not email:
+                continue
+            try:
+                r = await send_flash_sale_announcement(
+                    to_email=email,
+                    product_name=product_name,
+                    vendor_name=vendor_name,
+                    original_price=product_price,
+                    discounted_price=discounted_price,
+                    discount_percentage=discount_percentage,
+                    ends_at=ends_at_str,
+                    product_link=product_link,
+                )
+                if r.get("sent"):
+                    sent_count += 1
+                else:
+                    failed_count += 1
+            except Exception as e:
+                failed_count += 1
+                logger.warning("Flash-sale email failed for %s: %s", email, e)
+
+        if notif_docs:
+            await db.notifications.insert_many(notif_docs)
+        logger.info(
+            "Flash sale broadcast done: flash_id=%s notifications=%d emails_sent=%d emails_failed=%d",
+            flash_id, len(notif_docs), sent_count, failed_count,
+        )
+    except Exception as e:
+        logger.exception("Flash sale broadcast error: %s", e)
+
+
 @router.post("")
-async def create_flash_sale(data: FlashSaleCreate, user=Depends(role_required("admin"))):
+async def create_flash_sale(data: FlashSaleCreate, background_tasks: BackgroundTasks, user=Depends(role_required("admin"))):
     # Validate product
     try:
         product = await db.products.find_one({"_id": ObjectId(data.product_id), "deleted_at": None})
@@ -50,7 +117,32 @@ async def create_flash_sale(data: FlashSaleCreate, user=Depends(role_required("a
         "created_at": utc_now()
     })
 
-    return success_response(data=flash_doc, message="Vente flash créée")
+    # Resolve vendor name for the email
+    vendor_name = "un vendeur Washop"
+    try:
+        vendor = await db.vendors.find_one(
+            {"_id": ObjectId(product["vendor_id"])},
+            {"_id": 0, "shop_name": 1}
+        )
+        if vendor and vendor.get("shop_name"):
+            vendor_name = vendor["shop_name"]
+    except Exception:
+        pass
+
+    # Broadcast to all clients in background (emails + in-app notifications)
+    background_tasks.add_task(
+        _broadcast_flash_sale,
+        flash_id=flash_doc["id"],
+        product_id=data.product_id,
+        product_name=product["name"],
+        product_price=float(product["price"]),
+        discounted_price=discounted_price,
+        discount_percentage=data.discount_percentage,
+        ends_at=data.ends_at,
+        vendor_name=vendor_name,
+    )
+
+    return success_response(data=flash_doc, message="Vente flash créée. Notifications en cours d'envoi aux clients.")
 
 
 @router.get("")

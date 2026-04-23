@@ -315,6 +315,38 @@ Votre reclamation <strong>"{subject_text}"</strong> est maintenant: <strong styl
     return await send_email(client_email, subject, html)
 
 
+# ============== FLASH SALE ANNOUNCEMENT ==============
+
+async def send_flash_sale_announcement(to_email: str, product_name: str, vendor_name: str,
+                                        original_price: float, discounted_price: float,
+                                        discount_percentage: int, ends_at: str, product_link: str):
+    subject = f"Flash -{discount_percentage}% sur {product_name} !"
+    body = f"""
+<div style="text-align:center;margin-bottom:24px;">
+<div style="display:inline-block;width:56px;height:56px;line-height:56px;border-radius:50%;background-color:#fff3e0;font-size:28px;text-align:center;">&#9889;</div>
+</div>
+<h2 style="margin:0 0 8px;font-size:22px;color:#1a2b3c;text-align:center;">Vente Flash sur Washop</h2>
+<p style="margin:0 0 20px;color:#5a6b7c;font-size:14px;line-height:1.5;text-align:center;">
+Profitez d'une remise exceptionnelle de <strong style="color:#e65100;">-{discount_percentage}%</strong> jusqu'au <strong>{ends_at}</strong>.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafb;border-radius:10px;overflow:hidden;margin-bottom:20px;">
+<tr><td style="padding:20px;">
+<p style="margin:0 0 6px;font-size:17px;font-weight:600;color:#1a2b3c;">{product_name}</p>
+<p style="margin:0 0 12px;font-size:13px;color:#8898a9;">Vendu par {vendor_name}</p>
+<p style="margin:0;">
+<span style="font-size:24px;font-weight:700;color:#25D366;">{discounted_price:.2f} $</span>
+&nbsp;<span style="font-size:14px;color:#8898a9;text-decoration:line-through;">{original_price:.2f} $</span>
+&nbsp;<span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#ffebee;color:#c62828;font-size:12px;font-weight:700;">-{discount_percentage}%</span>
+</p>
+</td></tr>
+</table>
+{_button(product_link, "En profiter maintenant")}
+<p style="margin:16px 0 0;color:#8898a9;font-size:12px;text-align:center;">Offre valable jusqu'au {ends_at}, dans la limite des stocks disponibles.</p>
+"""
+    html = _wrap_html(body, f"-{discount_percentage}% sur {product_name}")
+    return await send_email(to_email, subject, html)
+
+
 # ============== TEST HELPER ==============
 
 async def test_sendgrid(to_email: str) -> dict:

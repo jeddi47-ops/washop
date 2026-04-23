@@ -78,11 +78,19 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=128)
     address: Optional[str] = Field(None, max_length=500)
     role: UserRole = UserRole.client
+    accept_terms: bool = Field(..., description="L'utilisateur accepte les CGU et la politique de confidentialité")
 
     @field_validator('email')
     @classmethod
     def normalize_email(cls, v):
         return v.strip().lower()
+
+    @field_validator('accept_terms')
+    @classmethod
+    def must_accept_terms(cls, v):
+        if v is not True:
+            raise ValueError("Vous devez accepter les CGU et la politique de confidentialité pour créer un compte")
+        return v
 
 class LoginRequest(BaseModel):
     email: str
@@ -106,6 +114,10 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=6, max_length=128)
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(..., min_length=8, max_length=200)
+
+
 # ============== USER SCHEMAS ==============
 class UserResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -115,6 +127,8 @@ class UserResponse(BaseModel):
     address: Optional[str] = None
     role: UserRole
     status: UserStatus = UserStatus.active
+    email_verified: bool = False
+    terms_accepted_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
 
 class UserUpdate(BaseModel):

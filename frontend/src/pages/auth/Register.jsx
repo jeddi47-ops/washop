@@ -10,6 +10,7 @@ export default function Register() {
   const navigate = useNavigate();
   const [role, setRole] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '', address: '', shop_name: '', whatsapp_number: '' });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,12 +18,24 @@ export default function Register() {
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); setError('');
+    if (!acceptTerms) {
+      setError("Vous devez accepter les CGU et la politique de confidentialité pour créer un compte.");
+      return;
+    }
+    setLoading(true);
     try {
-      const payload = { name: form.name, email: form.email, password: form.password, address: form.address, role };
-      const user = await register(payload);
-      if (user.role === 'vendor') navigate('/vendor/dashboard');
-      else navigate('/');
+      const payload = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        address: form.address,
+        role,
+        accept_terms: true,
+      };
+      await register(payload);
+      // Redirect to a dedicated page that tells the user to check their inbox.
+      navigate('/verify-email-sent', { replace: true, state: { email: form.email } });
     } catch (err) {
       const d = err.response?.data?.detail;
       setError(typeof d === 'string' ? d : Array.isArray(d) ? d.map(e => e.msg).join(', ') : "Erreur d'inscription");
@@ -84,7 +97,28 @@ export default function Register() {
             <label className="text-sm text-gray-500 mb-1 block">{t.auth.address}</label>
             <input value={form.address} onChange={e => set('address', e.target.value)} data-testid="register-address" />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2" data-testid="register-submit">
+          <label className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={e => setAcceptTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-[#25D366] cursor-pointer flex-shrink-0"
+              data-testid="register-accept-terms"
+              required
+            />
+            <span className="text-xs text-gray-700 leading-relaxed">
+              J'accepte les{' '}
+              <Link to="/terms" target="_blank" className="text-[#25D366] hover:underline font-medium">
+                Conditions Générales d'Utilisation
+              </Link>
+              {' '}et la{' '}
+              <Link to="/privacy" target="_blank" className="text-[#25D366] hover:underline font-medium">
+                Politique de confidentialité
+              </Link>
+              . J'autorise Washop à m'envoyer des emails liés à mon compte et à mon activité (confirmations, ventes flash, mises à jour).
+            </span>
+          </label>
+          <button type="submit" disabled={loading || !acceptTerms} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" data-testid="register-submit">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} {loading ? t.common.loading : t.auth.register_btn}
           </button>
           <p className="text-center text-sm text-gray-600">{t.auth.has_account} <Link to="/login" className="text-[#25D366] hover:underline font-medium">{t.nav.login}</Link></p>

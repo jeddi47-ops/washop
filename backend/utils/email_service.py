@@ -347,6 +347,50 @@ Profitez d'une remise exceptionnelle de <strong style="color:#e65100;">-{discoun
     return await send_email(to_email, subject, html)
 
 
+# ============== WELCOME + EMAIL VERIFICATION ==============
+
+async def send_welcome_verification(to_email: str, name: str, verify_link: str, role: str = "client"):
+    """Welcome email with verification CTA sent at registration."""
+    role_label = "vendeur" if role == "vendor" else "client"
+    role_hint = (
+        "Vous pourrez ensuite créer votre boutique et commencer à vendre sur Washop."
+        if role == "vendor"
+        else "Vous pourrez ensuite commander vos produits favoris en un clic via WhatsApp."
+    )
+    subject = f"Bienvenue sur Washop, {name} — vérifiez votre adresse email"
+    body = f"""
+<div style="text-align:center;margin-bottom:24px;">
+<div style="display:inline-block;width:64px;height:64px;line-height:64px;border-radius:50%;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);font-size:30px;color:#ffffff;text-align:center;">&#128075;</div>
+</div>
+<h2 style="margin:0 0 8px;font-size:22px;color:#1a2b3c;text-align:center;">Bienvenue {name} !</h2>
+<p style="margin:0 0 16px;color:#5a6b7c;font-size:14px;line-height:1.6;text-align:center;">
+Votre compte <strong>{role_label}</strong> vient d'être créé sur Washop. Il ne reste qu'une étape : confirmer votre adresse email pour activer toutes les fonctionnalités.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafb;border-radius:10px;margin-bottom:20px;">
+<tr><td style="padding:16px 20px;">
+<p style="margin:0 0 4px;font-size:13px;color:#8898a9;text-transform:uppercase;letter-spacing:0.5px;">Adresse à confirmer</p>
+<p style="margin:0;font-size:15px;font-weight:600;color:#1a2b3c;font-family:monospace;">{to_email}</p>
+</td></tr>
+</table>
+{_button(verify_link, "Vérifier mon adresse email")}
+<p style="margin:16px 0 12px;color:#5a6b7c;font-size:13px;line-height:1.5;text-align:center;">
+{role_hint}
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border-radius:8px;margin:16px 0 0;">
+<tr><td style="padding:12px 18px;">
+<p style="margin:0;color:#2e7d32;font-size:12px;line-height:1.5;">
+<strong>Ce lien est valable 24 heures.</strong> Passé ce délai, vous pourrez demander un nouvel email de vérification depuis votre espace.
+</p>
+</td></tr>
+</table>
+<p style="margin:16px 0 0;color:#8898a9;font-size:11px;line-height:1.5;text-align:center;word-break:break-all;">
+Si le bouton ne fonctionne pas, copiez-collez ce lien : <br/>{verify_link}
+</p>
+"""
+    html = _wrap_html(body, f"Bienvenue sur Washop, {name} ! Vérifiez votre email pour activer votre compte.")
+    return await send_email(to_email, subject, html)
+
+
 # ============== TEST HELPER ==============
 
 async def test_sendgrid(to_email: str) -> dict:

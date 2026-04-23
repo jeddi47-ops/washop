@@ -11,14 +11,46 @@ from middleware.auth import (
 )
 from models.schemas import (
     RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest,
-    UserResponse, UserRole
+    VerifyEmailRequest, UserResponse, UserRole
 )
 from utils.helpers import success_response, error_response, utc_now
 import jwt
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentification"])
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://washop.netlify.app")
+EMAIL_VERIFICATION_TTL_HOURS = 24
+
+
+async def _create_and_send_verification(user_id: str, email: str, name: str, role: str) -> None:
+    """Create a fresh email-verification token and send the welcome email.
+    Invalidates any previous unused token for the same user to avoid link races."""
+    from utils.email_service import send_welcome_verification
+    # Invalidate any previous unused tokens for this user
+    await db.email_verification_tokens.update_many(
+        {"user_id": user_id, "used": False},
+        {"$set": {"used": True, "invalidated_at": utc_now()}}
+    )
+    token = secrets.token_urlsafe(32)
+    await db.email_verification_tokens.insert_one({
+        "user_id": user_id,
+        "token": token,
+        "expires_at": utc_now() + timedelta(hours=EMAIL_VERIFICATION_TTL_HOURS),
+        "used": False,
+        "created_at": utc_now(),
+    })
+    verify_link = f"{FRONTEND_URL}/verify-email?token={token}"
+    try:
+        await send_welcome_verification(
+            to_email=email, name=name, verify_link=verify_link, role=role
+        )
+    except Exception as e:
+        # Do NOT fail the registration if the email provider hiccups — the user
+        # can always request a new link via /resend-verification.
+        logger.warning("Welcome email send failed for %s: %s", email, e)
 
 
 @router.post("/register")
@@ -30,6 +62,7 @@ async def register(data: RegisterRequest, response: Response):
     if data.role == UserRole.admin:
         raise HTTPException(status_code=400, detail="Impossible de créer un compte admin")
 
+    now = utc_now()
     user_doc = {
         "name": data.name,
         "email": data.email,
@@ -37,7 +70,9 @@ async def register(data: RegisterRequest, response: Response):
         "address": data.address,
         "role": data.role.value,
         "status": "active",
-        "created_at": utc_now(),
+        "email_verified": False,
+        "terms_accepted_at": now,
+        "created_at": now,
         "deleted_at": None
     }
     result = await db.users.insert_one(user_doc)
@@ -47,7 +82,6 @@ async def register(data: RegisterRequest, response: Response):
     if data.role == UserRole.vendor:
         from utils.helpers import generate_slug
         import uuid
-        now = utc_now()
         slug = generate_slug(data.name + "-shop")
         # Ensure unique slug
         existing_slug = await db.vendors.find_one({"shop_slug": slug})
@@ -77,6 +111,9 @@ async def register(data: RegisterRequest, response: Response):
         }
         await db.vendors.insert_one(vendor_doc)
 
+    # Send welcome + verification email (non-blocking on failure)
+    await _create_and_send_verification(user_id, data.email, data.name, data.role.value)
+
     access_token = create_access_token(user_id, data.email, data.role.value)
     refresh_token = create_refresh_token(user_id)
 
@@ -84,8 +121,15 @@ async def register(data: RegisterRequest, response: Response):
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
 
     return success_response(
-        data={"id": user_id, "name": data.name, "email": data.email, "role": data.role.value, "token": access_token},
-        message="Inscription réussie"
+        data={
+            "id": user_id,
+            "name": data.name,
+            "email": data.email,
+            "role": data.role.value,
+            "email_verified": False,
+            "token": access_token,
+        },
+        message="Inscription réussie. Un email de vérification vous a été envoyé."
     )
 
 
@@ -213,3 +257,57 @@ async def reset_password(data: ResetPasswordRequest):
     )
 
     return success_response(message="Mot de passe réinitialisé avec succès")
+
+
+
+@router.post("/verify-email")
+async def verify_email(data: VerifyEmailRequest):
+    """Consume an email-verification token and mark the user's email as verified."""
+    token_doc = await db.email_verification_tokens.find_one({
+        "token": data.token,
+        "used": False,
+        "expires_at": {"$gt": utc_now()},
+    })
+    if not token_doc:
+        raise HTTPException(status_code=400, detail="Lien de vérification invalide ou expiré")
+
+    try:
+        user_oid = ObjectId(token_doc["user_id"])
+    except Exception:
+        raise HTTPException(status_code=400, detail="Token lié à un compte introuvable")
+
+    user = await db.users.find_one({"_id": user_oid, "deleted_at": None}, {"password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Compte introuvable")
+
+    # Idempotent: if already verified, still consume the token and return success.
+    if not user.get("email_verified"):
+        await db.users.update_one(
+            {"_id": user_oid},
+            {"$set": {"email_verified": True, "email_verified_at": utc_now()}}
+        )
+
+    await db.email_verification_tokens.update_one(
+        {"_id": token_doc["_id"]},
+        {"$set": {"used": True, "used_at": utc_now()}}
+    )
+
+    return success_response(
+        data={"email": user["email"], "email_verified": True},
+        message="Adresse email vérifiée avec succès"
+    )
+
+
+@router.post("/resend-verification")
+async def resend_verification(user=Depends(get_user_any_status)):
+    """Resend a fresh verification email to the currently authenticated user."""
+    if user.get("email_verified"):
+        return success_response(message="Votre adresse email est déjà vérifiée")
+
+    await _create_and_send_verification(
+        user_id=user["id"],
+        email=user["email"],
+        name=user.get("name", ""),
+        role=user.get("role", "client"),
+    )
+    return success_response(message="Un nouvel email de vérification vient d'être envoyé")

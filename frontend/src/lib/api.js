@@ -35,6 +35,8 @@ export const auth = {
   refresh: () => api.post('/v1/auth/refresh'),
   forgotPassword: (data) => api.post('/v1/auth/forgot-password', data),
   resetPassword: (data) => api.post('/v1/auth/reset-password', data),
+  verifyEmail: (data) => api.post('/v1/auth/verify-email', data),
+  resendVerification: () => api.post('/v1/auth/resend-verification'),
 };
 
 export const vendors = {

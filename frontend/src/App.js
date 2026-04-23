@@ -16,6 +16,8 @@ import NotFound from './pages/NotFound';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import VerifyEmailSent from './pages/auth/VerifyEmailSent';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ClientDashboard from './pages/client/Dashboard';
 import ClientOrders, { ClientOrderDetail } from './pages/client/Orders';
@@ -101,6 +103,8 @@ function AppShell({ splash }) {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email-sent" element={<VerifyEmailSent />} />
           {/* Client Dashboard */}
           <Route path="/client/dashboard" element={<ProtectedRoute roles={['client']}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/client/orders" element={<ProtectedRoute roles={['client']}><ClientOrders /></ProtectedRoute>} />

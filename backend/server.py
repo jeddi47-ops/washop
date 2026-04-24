@@ -43,16 +43,28 @@ async def seed_admin():
             "address": "",
             "role": "admin",
             "status": "active",
+            "email_verified": True,
+            "email_verified_at": datetime.now(timezone.utc),
+            "terms_accepted_at": datetime.now(timezone.utc),
             "created_at": datetime.now(timezone.utc),
             "deleted_at": None
         })
         logger.info(f"Admin user created: {admin_email}")
-    elif not verify_password(admin_password, existing.get("password_hash", "")):
-        await db.users.update_one(
-            {"email": admin_email},
-            {"$set": {"password_hash": hash_password(admin_password)}}
-        )
-        logger.info(f"Admin password updated: {admin_email}")
+    else:
+        updates = {}
+        if not verify_password(admin_password, existing.get("password_hash", "")):
+            updates["password_hash"] = hash_password(admin_password)
+        # Always ensure the seeded admin account is verified and active so that
+        # a fake email used during early testing does not lock us out of the
+        # dashboard.
+        if not existing.get("email_verified"):
+            updates["email_verified"] = True
+            updates["email_verified_at"] = datetime.now(timezone.utc)
+        if existing.get("status") != "active":
+            updates["status"] = "active"
+        if updates:
+            await db.users.update_one({"email": admin_email}, {"$set": updates})
+            logger.info(f"Admin user updated ({', '.join(updates.keys())}): {admin_email}")
 
     # Write credentials
     os.makedirs("/app/memory", exist_ok=True)

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLang } from '../../contexts/LangContext';
 import { Eye, EyeOff, Loader2, ShoppingBag, Store } from 'lucide-react';
+import { HowItWorks, PricingSection } from '../Home';
 
 export default function Register() {
   const { register } = useAuth();
@@ -34,8 +35,10 @@ export default function Register() {
         accept_terms: true,
       };
       await register(payload);
-      // Redirect to a dedicated page that tells the user to check their inbox.
-      navigate('/verify-email-sent', { replace: true, state: { email: form.email } });
+      // The email-verification wall will take over automatically on /
+      // (because user.email_verified === false) until the user clicks the
+      // link received by email.
+      navigate('/', { replace: true });
     } catch (err) {
       const d = err.response?.data?.detail;
       setError(typeof d === 'string' ? d : Array.isArray(d) ? d.map(e => e.msg).join(', ') : "Erreur d'inscription");
@@ -44,13 +47,14 @@ export default function Register() {
 
   if (!role) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-10" data-testid="register-page">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
+      <div className="min-h-screen pt-20 pb-10" data-testid="register-page">
+        <div className="max-w-md mx-auto px-4 mb-10">
+          <div className="text-center">
             <img src="/logo.png" alt="Washop" className="h-16 w-16 rounded-xl mx-auto mb-4 object-cover" />
             <h1 className="text-2xl font-bold">{t.auth.register_title}</h1>
+            <p className="text-sm text-gray-500 mt-2">Avant de commencer, voici comment Washop fonctionne et quels plans sont proposés.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
             <button onClick={() => setRole('client')} className="glass p-6 text-center hover:border-[#25D366]/40 transition-all group" data-testid="role-client">
               <ShoppingBag className="w-10 h-10 mx-auto mb-3 text-[#25D366] group-hover:scale-110 transition-transform" />
               <p className="font-bold mb-1">{t.auth.client_role}</p>
@@ -63,6 +67,17 @@ export default function Register() {
             </button>
           </div>
           <p className="text-center text-sm text-gray-400 mt-6">{t.auth.has_account} <Link to="/login" className="text-[#25D366] hover:underline font-medium">{t.nav.login}</Link></p>
+        </div>
+
+        {/* Contextual info sections — moved from the public home page so they
+            are only shown to people who are actually considering signing up. */}
+        <HowItWorks />
+        <PricingSection />
+
+        <div className="max-w-md mx-auto px-4 mt-10 text-center">
+          <button onClick={() => setRole('client')} className="btn-primary !px-8" data-testid="role-client-cta">
+            Créer mon compte
+          </button>
         </div>
       </div>
     );

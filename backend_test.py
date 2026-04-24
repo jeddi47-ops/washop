@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 class WashopAPITester:
-    def __init__(self, base_url: str = "https://whatsapp-shop-api.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://washop-staging.preview.emergentagent.com"):
         self.base_url = base_url
         self.admin_token = None
         self.vendor_token = None

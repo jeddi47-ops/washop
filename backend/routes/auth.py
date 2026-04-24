@@ -23,35 +23,42 @@ router = APIRouter(prefix="/auth", tags=["Authentification"])
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://washop.netlify.app")
 EMAIL_VERIFICATION_TTL_HOURS = 24
+EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS = 180  # 3 minutes between two verification emails
 
 
-async def _create_and_send_verification(user_id: str, email: str, name: str, role: str) -> None:
+async def _create_and_send_verification(user_id: str, email: str, name: str, role: str) -> dict:
     """Create a fresh email-verification token and send the welcome email.
     Invalidates any previous unused token for the same user to avoid link races.
-    Rate-limited: if a fresh token was already issued in the last 60s, we skip
-    the re-send to prevent inbox flooding via repeated login attempts."""
+    Rate-limited: if a fresh token was already issued in the last
+    EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS, we skip the re-send to prevent
+    inbox flooding via repeated login attempts.
+
+    Returns a dict with the timestamp (UTC ISO) when the next resend will be allowed:
+        {"sent": bool, "next_resend_available_at": "2026-..."}
+    """
     from utils.email_service import send_welcome_verification
-    # Throttle: do not issue more than one token per minute per user
-    throttle_cutoff = utc_now() - timedelta(seconds=60)
-    recent = await db.email_verification_tokens.find_one({
-        "user_id": user_id,
-        "created_at": {"$gt": throttle_cutoff},
-    })
+    now = utc_now()
+    throttle_cutoff = now - timedelta(seconds=EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS)
+    recent = await db.email_verification_tokens.find_one(
+        {"user_id": user_id, "created_at": {"$gt": throttle_cutoff}},
+        sort=[("created_at", -1)],
+    )
     if recent:
-        logger.info("Verification email throttled for user=%s (recent token found)", user_id)
-        return
+        next_allowed = recent["created_at"] + timedelta(seconds=EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS)
+        logger.info("Verification email throttled for user=%s (next at %s)", user_id, next_allowed)
+        return {"sent": False, "next_resend_available_at": next_allowed.isoformat()}
     # Invalidate any previous unused tokens for this user
     await db.email_verification_tokens.update_many(
         {"user_id": user_id, "used": False},
-        {"$set": {"used": True, "invalidated_at": utc_now()}}
+        {"$set": {"used": True, "invalidated_at": now}}
     )
     token = secrets.token_urlsafe(32)
     await db.email_verification_tokens.insert_one({
         "user_id": user_id,
         "token": token,
-        "expires_at": utc_now() + timedelta(hours=EMAIL_VERIFICATION_TTL_HOURS),
+        "expires_at": now + timedelta(hours=EMAIL_VERIFICATION_TTL_HOURS),
         "used": False,
-        "created_at": utc_now(),
+        "created_at": now,
     })
     verify_link = f"{FRONTEND_URL}/verify-email?token={token}"
     try:
@@ -62,6 +69,8 @@ async def _create_and_send_verification(user_id: str, email: str, name: str, rol
         # Do NOT fail the registration if the email provider hiccups — the user
         # can always request a new link via /resend-verification.
         logger.warning("Welcome email send failed for %s: %s", email, e)
+    next_allowed = now + timedelta(seconds=EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS)
+    return {"sent": True, "next_resend_available_at": next_allowed.isoformat()}
 
 
 @router.post("/register")
@@ -332,14 +341,26 @@ async def verify_email(data: VerifyEmailRequest):
 
 @router.post("/resend-verification")
 async def resend_verification(user=Depends(get_user_any_status)):
-    """Resend a fresh verification email to the currently authenticated user."""
+    """Resend a fresh verification email to the currently authenticated user.
+    Rate-limited: returns a 429 with `next_resend_available_at` if called too soon."""
     if user.get("email_verified"):
         return success_response(message="Votre adresse email est déjà vérifiée")
 
-    await _create_and_send_verification(
+    result = await _create_and_send_verification(
         user_id=user["id"],
         email=user["email"],
         name=user.get("name", ""),
         role=user.get("role", "client"),
     )
-    return success_response(message="Un nouvel email de vérification vient d'être envoyé")
+    if not result.get("sent"):
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": "Un email vient d'être envoyé. Patientez avant d'en redemander un.",
+                "next_resend_available_at": result.get("next_resend_available_at"),
+            },
+        )
+    return success_response(
+        data={"next_resend_available_at": result.get("next_resend_available_at")},
+        message="Un nouvel email de vérification vient d'être envoyé",
+    )

@@ -112,12 +112,26 @@ async def list_products(
     query["vendor_id"] = {"$in": active_vendor_ids} if not vendor_id else vendor_id
 
     sort_dir = -1 if sort_order == "desc" else 1
-    allowed_sorts = {"created_at", "price", "click_count", "name"}
+    allowed_sorts = {"created_at", "price", "click_count", "name", "random"}
     if sort_by not in allowed_sorts:
         sort_by = "created_at"
 
     total = await db.products.count_documents(query)
-    products = await db.products.find(query).sort(sort_by, sort_dir).skip(skip).limit(limit).to_list(limit)
+
+    if sort_by == "random":
+        # Random sampling via MongoDB aggregation — each call returns a fresh
+        # shuffle so refreshing the catalogue yields a different order.
+        # `skip` is intentionally ignored: the frontend deduplicates by id
+        # while scrolling, which is the cleanest way to do infinite scroll
+        # on top of a random sample (proper pagination + randomness is
+        # incompatible without a stable seed).
+        pipeline = [
+            {"$match": query},
+            {"$sample": {"size": limit}},
+        ]
+        products = await db.products.aggregate(pipeline).to_list(limit)
+    else:
+        products = await db.products.find(query).sort(sort_by, sort_dir).skip(skip).limit(limit).to_list(limit)
 
     result = []
     for p in products:

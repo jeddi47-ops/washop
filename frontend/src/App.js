@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { LangProvider } from './contexts/LangContext';
@@ -7,6 +7,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/shared/CartDrawer';
 import AccountStatusScreen from './components/layout/AccountStatusScreen';
+import EmailVerificationWall from './components/layout/EmailVerificationWall';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import ShopPage from './pages/ShopPage';
@@ -81,12 +82,20 @@ export default function App() {
 
 function AppShell({ splash }) {
   const { user } = useAuth();
+  const location = useLocation();
 
   // If the logged-in user is banned or suspended, we deliberately keep the
   // session alive (per product requirement) but replace the entire UI with
   // a dedicated status screen. No navbar, no routes, no footer.
   if (user && (user.status === 'banned' || user.status === 'suspended')) {
     return <AccountStatusScreen status={user.status} />;
+  }
+
+  // Unverified email → full-screen wall prevents any access to the shop.
+  // The /verify-email route itself is whitelisted so that clicking the link
+  // in the email inbox actually works and can flip email_verified to true.
+  if (user && user.email_verified === false && location.pathname !== '/verify-email') {
+    return <EmailVerificationWall />;
   }
 
   return (

@@ -6,7 +6,7 @@ Debug specific failing endpoints
 import requests
 import json
 
-BASE_URL = "https://whatsapp-shop-api.preview.emergentagent.com"
+BASE_URL = "https://washop-staging.preview.emergentagent.com"
 
 def test_specific_failures():
     # Login as admin to get token

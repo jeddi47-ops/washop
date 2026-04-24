@@ -6,14 +6,11 @@ import ProductCard, { SkeletonCard } from '../components/shared/ProductCard';
 import { ArrowRight, Star, ShoppingBag, Store, MessageCircle, Zap, Crown, Sparkles, ChevronLeft, ChevronRight, Check, X as XIcon } from 'lucide-react';
 
 export default function Home() {
-  const { t } = useLang();
   return (
     <div className="animate-fade-in">
       <Hero />
-      <HowItWorks />
       <FlashSalesSection />
       <FeaturedSection />
-      <PricingSection />
       <TrendingSection />
       <Testimonials />
       <CatalogSection />
@@ -50,7 +47,8 @@ function Hero() {
 }
 
 /* =================== HOW IT WORKS =================== */
-function HowItWorks() {
+/* =================== HOW IT WORKS =================== */
+export function HowItWorks() {
   const { t } = useLang();
   const clientSteps = [
     { icon: <ShoppingBag className="w-7 h-7" />, text: t.how.client_steps[0] },
@@ -145,7 +143,7 @@ function FeaturedSection() {
 }
 
 /* =================== PRICING =================== */
-function PricingSection() {
+export function PricingSection() {
   const { t } = useLang();
   const [annual, setAnnual] = useState(false);
   const checkoutLinks = {
@@ -256,25 +254,53 @@ function CatalogSection() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [catFilter, setCatFilter] = useState('');
-  const [sort, setSort] = useState('created_at');
+  // Default sort: random for a fresh catalogue order on every refresh.
+  const [sort, setSort] = useState('random');
   const [sortOrder, setSortOrder] = useState('desc');
+  const sentinelRef = React.useRef(null);
+  const loadingRef = React.useRef(false);
 
-  const fetchProducts = async (p = 1, append = false) => {
+  const fetchProducts = React.useCallback(async (p = 1, append = false) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
       const params = { page: p, limit: 12, sort_by: sort, sort_order: sortOrder };
       if (catFilter) params.category_id = catFilter;
       const { data } = await productsApi.list(params);
-      setItems(prev => append ? [...prev, ...(data.data || [])] : (data.data || []));
+      const incoming = data.data || [];
+      setItems(prev => {
+        if (!append) return incoming;
+        // Deduplicate by product id (important when using random sort which
+        // can otherwise return the same item twice across pages).
+        const seen = new Set(prev.map(p => p.id));
+        return [...prev, ...incoming.filter(it => !seen.has(it.id))];
+      });
       setTotal(data.total || 0);
       setPage(p);
     } catch {}
     setLoading(false);
-  };
+    loadingRef.current = false;
+  }, [sort, sortOrder, catFilter]);
 
   useEffect(() => { categoriesApi.list({ limit: 50 }).then(r => setCats(r.data.data || [])).catch(() => {}); }, []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchProducts(1); }, [catFilter, sort, sortOrder]);
+  useEffect(() => { fetchProducts(1, false); }, [fetchProducts]);
+
+  // Infinite scroll: observe a sentinel at the bottom of the grid. Whenever it
+  // becomes visible AND there are more products to load, fetch the next page.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (!entry.isIntersecting) return;
+      if (loadingRef.current) return;
+      if (items.length >= total) return;
+      fetchProducts(page + 1, true);
+    }, { rootMargin: '400px 0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchProducts, items.length, total, page]);
 
   return (
     <section id="catalog" className="py-12 px-4" data-testid="catalog-section">
@@ -292,6 +318,7 @@ function CatalogSection() {
         {/* Sort */}
         <div className="flex gap-2 mb-6">
           <select value={`${sort}:${sortOrder}`} onChange={e => { const [s, o] = e.target.value.split(':'); setSort(s); setSortOrder(o); }} className="!py-2 !px-3 !text-sm !rounded-lg !w-auto">
+            <option value="random:desc">Aléatoire</option>
             <option value="created_at:desc">{t.catalog.sort_recent}</option>
             <option value="price:asc">{t.catalog.sort_price_asc}</option>
             <option value="price:desc">{t.catalog.sort_price_desc}</option>
@@ -312,9 +339,10 @@ function CatalogSection() {
           </div>
         )}
 
-        {items.length < total && (
-          <div className="text-center mt-8">
-            <button onClick={() => fetchProducts(page + 1, true)} disabled={loading} className="btn-secondary !px-8">{loading ? t.common.loading : t.catalog.load_more}</button>
+        {/* Sentinel for infinite scroll + loader */}
+        {items.length > 0 && items.length < total && (
+          <div ref={sentinelRef} className="flex justify-center items-center py-8" data-testid="catalog-infinite-sentinel">
+            {loading && <div className="w-6 h-6 border-2 border-[#25D366] border-t-transparent rounded-full animate-spin" />}
           </div>
         )}
       </div>

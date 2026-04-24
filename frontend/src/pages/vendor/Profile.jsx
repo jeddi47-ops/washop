@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { vendors } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChevronLeft, Loader2, CheckCircle, Settings, Store, Link2 } from 'lucide-react';
+import ShareShopCard from '../../components/shared/ShareShopCard';
 
 export default function VendorProfile() {
   const { user, checkAuth } = useAuth();
@@ -123,9 +124,8 @@ export default function VendorProfile() {
 
         {/* Shop link */}
         {vendor?.shop_slug && (
-          <div className="glass p-4 mt-4 text-center">
-            <p className="text-xs text-gray-500 mb-1">Lien de votre boutique</p>
-            <Link to={`/boutiques/${vendor.shop_slug}`} className="text-sm text-[#25D366] hover:underline font-mono">/boutiques/{vendor.shop_slug}</Link>
+          <div className="mt-4">
+            <ShareShopCard slug={vendor.shop_slug} shopName={vendor.shop_name} />
           </div>
         )}
       </div>

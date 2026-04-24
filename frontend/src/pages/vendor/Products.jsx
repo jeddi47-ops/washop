@@ -109,18 +109,57 @@ function ProductDrawer({ product, onClose, onSaved }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => { catsApi.list({ limit: 100 }).then(r => setCats(r.data.data || [])).catch(() => {}); }, []);
   useEffect(() => {
     if (product) setForm({ name: product.name, category_id: product.category_id, description: product.description || '', price: String(product.price), stock: String(product.stock), is_active: product.is_active });
   }, [product]);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (fieldErrors[k]) setFieldErrors(prev => { const { [k]: _, ...rest } = prev; return rest; });
+  };
+
+  // Client-side pre-validation: tells the user which specific fields are
+  // missing BEFORE we ever hit the API, in plain language.
+  const validate = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Le nom du produit est obligatoire';
+    if (!form.category_id) errs.category_id = 'Choisissez une catégorie';
+    const priceNum = parseFloat(form.price);
+    if (!form.price || Number.isNaN(priceNum) || priceNum <= 0) errs.price = 'Le prix doit être un nombre supérieur à 0';
+    const stockNum = parseInt(form.stock, 10);
+    if (form.stock === '' || Number.isNaN(stockNum) || stockNum < 0) errs.stock = 'Le stock doit être un entier positif ou nul';
+    if (form.description && form.description.length > 5000) errs.description = 'La description dépasse 5000 caractères';
+    return errs;
+  };
+
+  // Maps a FastAPI 422 validation-error list into a { field: message } dict.
+  const mapApiErrors = (detail) => {
+    if (!Array.isArray(detail)) return null;
+    const out = {};
+    detail.forEach(e => {
+      const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : null;
+      if (field && typeof e.msg === 'string') out[field] = e.msg;
+    });
+    return out;
+  };
 
   const submit = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault();
+    setError('');
+    const clientErrs = validate();
+    if (Object.keys(clientErrs).length > 0) {
+      setFieldErrors(clientErrs);
+      const first = Object.values(clientErrs)[0];
+      setError(`Certains champs sont invalides : ${first}`);
+      return;
+    }
+    setFieldErrors({});
+    setLoading(true);
     try {
-      const payload = { name: form.name, category_id: form.category_id, description: form.description, price: parseFloat(form.price), stock: parseInt(form.stock), is_active: form.is_active };
+      const payload = { name: form.name, category_id: form.category_id, description: form.description, price: parseFloat(form.price), stock: parseInt(form.stock, 10), is_active: form.is_active };
       let pid;
       if (product) {
         await productsApi.update(product.id, payload);
@@ -136,9 +175,24 @@ function ProductDrawer({ product, onClose, onSaved }) {
         await productsApi.uploadImages(pid, fd);
       }
       onSaved();
-    } catch (err) { setError(err.response?.data?.detail || 'Erreur'); }
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      const mapped = mapApiErrors(detail);
+      if (mapped && Object.keys(mapped).length > 0) {
+        setFieldErrors(mapped);
+        setError('Corrigez les champs indiqués et réessayez.');
+      } else if (typeof detail === 'string') {
+        setError(detail);
+      } else {
+        setError("Une erreur est survenue lors de l'enregistrement. Réessayez.");
+      }
+    }
     setLoading(false);
   };
+
+  const fieldClass = (name) => fieldErrors[name]
+    ? '!text-sm !border-red-400 focus:!border-red-500 focus:!ring-red-500/40'
+    : '!text-sm';
 
   return (
     <div className="fixed inset-0 z-50">
@@ -164,27 +218,32 @@ function ProductDrawer({ product, onClose, onSaved }) {
 
           <div>
             <label className="text-sm text-gray-500 mb-1 block">Nom <span className="text-gray-500">({form.name.length}/300)</span></label>
-            <input value={form.name} onChange={e => set('name', e.target.value)} required maxLength={300} className="!text-sm" />
+            <input value={form.name} onChange={e => set('name', e.target.value)} maxLength={300} className={fieldClass('name')} data-testid="product-name" />
+            {fieldErrors.name && <p className="text-xs text-red-500 mt-1" data-testid="product-name-error">{fieldErrors.name}</p>}
           </div>
           <div>
             <label className="text-sm text-gray-500 mb-1 block">Categorie</label>
-            <select value={form.category_id} onChange={e => set('category_id', e.target.value)} required className="!text-sm">
+            <select value={form.category_id} onChange={e => set('category_id', e.target.value)} className={fieldClass('category_id')} data-testid="product-category">
               <option value="">Choisir...</option>
               {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            {fieldErrors.category_id && <p className="text-xs text-red-500 mt-1" data-testid="product-category-error">{fieldErrors.category_id}</p>}
           </div>
           <div>
             <label className="text-sm text-gray-500 mb-1 block">Description <span className="text-gray-500">({form.description.length}/5000)</span></label>
-            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={5000} className="!text-sm" />
+            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={5000} className={fieldClass('description')} data-testid="product-description" />
+            {fieldErrors.description && <p className="text-xs text-red-500 mt-1">{fieldErrors.description}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Prix ($)</label>
-              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} required className="!text-sm" />
+              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" />
+              {fieldErrors.price && <p className="text-xs text-red-500 mt-1" data-testid="product-price-error">{fieldErrors.price}</p>}
             </div>
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Stock</label>
-              <input type="number" min="0" value={form.stock} onChange={e => set('stock', e.target.value)} required className="!text-sm" />
+              <input type="number" min="0" value={form.stock} onChange={e => set('stock', e.target.value)} className={fieldClass('stock')} data-testid="product-stock" />
+              {fieldErrors.stock && <p className="text-xs text-red-500 mt-1" data-testid="product-stock-error">{fieldErrors.stock}</p>}
             </div>
           </div>
         </form>

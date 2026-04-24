@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { vendors, orders as ordersApi, products as productsApi } from '../../lib/api';
 import { Package, Eye, TrendingUp, Star, ChevronRight, Clock, AlertTriangle, Key, Plus, BarChart3, ShoppingBag, Settings, Bell } from 'lucide-react';
+import ShareShopCard from '../../components/shared/ShareShopCard';
 
 const statusColor = { pending: 'bg-gray-500/20 text-gray-400', whatsapp_redirected: 'bg-blue-500/20 text-blue-400', confirmed: 'bg-[#25D366]/20 text-[#25D366]', cancelled: 'bg-red-500/20 text-red-400' };
 const statusLabel = { pending: 'En attente', whatsapp_redirected: 'WhatsApp', confirmed: 'Confirme', cancelled: 'Annule' };
@@ -73,6 +74,13 @@ export default function VendorDashboard() {
           <h1 className="text-2xl font-bold">{vendor?.shop_name || user?.name}</h1>
           <p className="text-sm text-gray-400 mt-1">Tableau de bord vendeur</p>
         </div>
+
+        {/* Share shop */}
+        {vendor?.shop_slug && (
+          <div className="mb-6">
+            <ShareShopCard slug={vendor.shop_slug} shopName={vendor.shop_name} />
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

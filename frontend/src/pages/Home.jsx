@@ -108,16 +108,46 @@ function FlashSalesSection() {
           <span className="text-xs font-bold bg-red-500 px-2 py-0.5 rounded-full animate-pulse">{t.flash.limited}</span>
         </div>
         <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-          {sales.map(s => (
-            <Link to={`/products/${s.product_id}`} key={s.id} className="glass min-w-[200px] max-w-[200px] p-3 flex-shrink-0 hover:border-red-500/30 transition">
-              <p className="text-sm font-medium truncate">{s.product?.name}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[#25D366] font-bold">{s.discounted_price?.toFixed(2)} $</span>
-                <span className="text-xs text-gray-400 line-through">{s.product?.price?.toFixed(2)} $</span>
-              </div>
-              <span className="text-xs text-red-400 font-bold">-{s.discount_percentage}%</span>
-            </Link>
-          ))}
+          {sales.map(s => {
+            const img = s.product?.images?.[0];
+            return (
+              <Link
+                to={`/products/${s.product_id}`}
+                key={s.id}
+                className="group glass min-w-[200px] max-w-[200px] p-0 flex-shrink-0 overflow-hidden hover:border-red-500/40 hover:shadow-lg transition-all"
+                data-testid="flash-sale-card"
+              >
+                <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={s.product?.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                      <Zap className="w-10 h-10" />
+                    </div>
+                  )}
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full shadow-md">
+                    -{s.discount_percentage}%
+                  </span>
+                  <span className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <Zap className="w-3 h-3 text-yellow-300" />
+                    FLASH
+                  </span>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-medium truncate text-gray-900">{s.product?.name}</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-[#25D366] font-bold">{s.discounted_price?.toFixed(2)} $</span>
+                    <span className="text-xs text-gray-400 line-through">{s.product?.price?.toFixed(2)} $</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

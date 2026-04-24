@@ -167,7 +167,7 @@ async def list_flash_sales(
         try:
             product = await db.products.find_one(
                 {"_id": ObjectId(s["product_id"])},
-                {"_id": 0, "name": 1, "price": 1}
+                {"_id": 0, "name": 1, "price": 1, "images": 1}
             )
             s["product"] = product
         except Exception:

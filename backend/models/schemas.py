@@ -156,6 +156,8 @@ class VendorUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=2000)
     whatsapp_number: Optional[str] = Field(None, min_length=8, max_length=20)
     social_links: Optional[dict] = None
+    avatar_url: Optional[str] = Field(None, max_length=1000)
+    banner_url: Optional[str] = Field(None, max_length=1000)
 
     @field_validator('social_links')
     @classmethod
@@ -173,6 +175,8 @@ class VendorResponse(BaseModel):
     shop_slug: str
     description: Optional[str] = None
     whatsapp_number: str
+    avatar_url: Optional[str] = None
+    banner_url: Optional[str] = None
     subscription_type: Optional[SubscriptionType] = None
     subscription_duration: Optional[SubscriptionDuration] = None
     subscription_started_at: Optional[datetime] = None

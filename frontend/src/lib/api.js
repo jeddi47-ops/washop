@@ -47,6 +47,12 @@ export const vendors = {
   create: (data) => api.post('/v1/vendors', data),
   updateMe: (data) => api.put('/v1/vendors/me', data),
   stats: (id) => api.get(`/v1/vendors/${id}/stats`),
+  uploadImage: (kind, file) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return api.post(`/v1/vendors/me/image/${kind}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  deleteImage: (kind) => api.delete(`/v1/vendors/me/image/${kind}`),
 };
 
 export const products = {

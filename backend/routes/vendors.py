@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, Path
 from bson import ObjectId
 from datetime import timedelta
 import uuid
@@ -10,6 +10,7 @@ from utils.helpers import (
     success_response, error_response, paginated_response, validate_pagination,
     utc_now, generate_slug
 )
+from utils.cloudinary_service import upload_image, delete_image, validate_image_file
 
 router = APIRouter(prefix="/vendors", tags=["Vendeurs"])
 
@@ -103,6 +104,78 @@ async def update_my_vendor(data: VendorUpdate, user=Depends(get_current_user)):
     updated = await db.vendors.find_one({"_id": vendor["_id"]}, {"_id": 0})
     updated["id"] = str(vendor["_id"])
     return success_response(data=updated, message="Boutique mise à jour")
+
+
+@router.post("/me/image/{kind}")
+async def upload_vendor_image(
+    file: UploadFile = File(...),
+    kind: str = Path(..., pattern="^(avatar|banner)$"),
+    user=Depends(get_current_user),
+):
+    """Upload the current vendor's avatar (logo) or banner to Cloudinary and
+    persist the resulting URL on the vendor document. The previous Cloudinary
+    asset is deleted so we never accumulate orphan images."""
+    if user["role"] != "vendor":
+        raise HTTPException(status_code=403, detail="Vous n'êtes pas vendeur")
+    vendor = await db.vendors.find_one({"user_id": user["id"], "deleted_at": None})
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Profil vendeur non trouvé")
+
+    content = await file.read()
+    is_valid, err_msg = validate_image_file(file.content_type, len(content))
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=err_msg)
+
+    folder = f"washop/vendors/{str(vendor['_id'])}/{kind}"
+    try:
+        result = await upload_image(content, folder=folder)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    url_field = f"{kind}_url"
+    pid_field = f"{kind}_public_id"
+    # Best-effort cleanup of the previous asset.
+    old_public_id = vendor.get(pid_field)
+    if old_public_id:
+        try:
+            delete_image(old_public_id)
+        except Exception:
+            pass
+
+    await db.vendors.update_one(
+        {"_id": vendor["_id"]},
+        {"$set": {url_field: result["cloudinary_url"], pid_field: result["cloudinary_public_id"]}},
+    )
+    return success_response(
+        data={"url": result["cloudinary_url"], "kind": kind},
+        message=f"{kind.capitalize()} mis à jour",
+    )
+
+
+@router.delete("/me/image/{kind}")
+async def delete_vendor_image(
+    kind: str = Path(..., pattern="^(avatar|banner)$"),
+    user=Depends(get_current_user),
+):
+    """Remove the vendor's avatar or banner."""
+    if user["role"] != "vendor":
+        raise HTTPException(status_code=403, detail="Vous n'êtes pas vendeur")
+    vendor = await db.vendors.find_one({"user_id": user["id"], "deleted_at": None})
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Profil vendeur non trouvé")
+    url_field = f"{kind}_url"
+    pid_field = f"{kind}_public_id"
+    old_public_id = vendor.get(pid_field)
+    if old_public_id:
+        try:
+            delete_image(old_public_id)
+        except Exception:
+            pass
+    await db.vendors.update_one(
+        {"_id": vendor["_id"]},
+        {"$unset": {url_field: "", pid_field: ""}},
+    )
+    return success_response(message=f"{kind.capitalize()} supprimé")
 
 
 @router.get("")

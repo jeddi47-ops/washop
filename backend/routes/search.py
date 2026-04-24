@@ -150,3 +150,59 @@ async def search_suggestions(q: str = Query(..., min_length=1, max_length=100)):
     results = await db.products.aggregate(pipeline).to_list(10)
     suggestions = [r["_id"] for r in results]
     return success_response(data=suggestions)
+
+
+@router.get("/shops")
+async def search_shops(
+    q: str = Query(..., min_length=1, max_length=200),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Case-insensitive search on vendor shop_name and description.
+    Only returns active, non-suspended shops. Ranked by subscription plan
+    (Extra > Premium > Basic) so that paying vendors get more visibility."""
+    page, limit, skip = validate_pagination(page, limit)
+
+    # Escape user input so regex special chars don't break the query.
+    import re
+    safe = re.escape(q.strip())
+    pattern = {"$regex": safe, "$options": "i"}
+
+    query = {
+        "deleted_at": None,
+        "is_active": True,
+        "$or": [
+            {"shop_name": pattern},
+            {"description": pattern},
+        ],
+    }
+    total = await db.vendors.count_documents(query)
+    shops = await db.vendors.find(query).skip(skip).limit(limit).to_list(limit)
+
+    type_rank = {"extra": 0, "premium": 1, "basic": 2}
+    result = []
+    for v in shops:
+        vid = str(v.pop("_id"))
+        # Product counter is expensive per-row but cheap enough at this volume;
+        # if it ever becomes a bottleneck we can precompute in the vendor doc.
+        product_count = await db.products.count_documents({
+            "vendor_id": vid, "deleted_at": None, "is_active": True
+        })
+        result.append({
+            "id": vid,
+            "shop_name": v.get("shop_name"),
+            "shop_slug": v.get("shop_slug"),
+            "description": v.get("description"),
+            "avatar_url": v.get("avatar_url"),
+            "banner_url": v.get("banner_url"),
+            "is_verified": bool(v.get("is_verified")),
+            "subscription_type": v.get("subscription_type", "basic"),
+            "avg_product_rating": float(v.get("avg_product_rating") or 0),
+            "product_count": product_count,
+            "_rank": type_rank.get(v.get("subscription_type", "basic"), 2),
+        })
+    result.sort(key=lambda x: x["_rank"])
+    for r in result:
+        r.pop("_rank", None)
+
+    return paginated_response(result, total, page, limit)

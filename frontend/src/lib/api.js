@@ -96,6 +96,7 @@ export const wishlist = {
 export const search = {
   query: (params) => api.get('/v1/search', { params }),
   suggestions: (q) => api.get('/v1/search/suggestions', { params: { q } }),
+  shops: (params) => api.get('/v1/search/shops', { params }),
 };
 
 export const notifications = {

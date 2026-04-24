@@ -27,8 +27,19 @@ EMAIL_VERIFICATION_TTL_HOURS = 24
 
 async def _create_and_send_verification(user_id: str, email: str, name: str, role: str) -> None:
     """Create a fresh email-verification token and send the welcome email.
-    Invalidates any previous unused token for the same user to avoid link races."""
+    Invalidates any previous unused token for the same user to avoid link races.
+    Rate-limited: if a fresh token was already issued in the last 60s, we skip
+    the re-send to prevent inbox flooding via repeated login attempts."""
     from utils.email_service import send_welcome_verification
+    # Throttle: do not issue more than one token per minute per user
+    throttle_cutoff = utc_now() - timedelta(seconds=60)
+    recent = await db.email_verification_tokens.find_one({
+        "user_id": user_id,
+        "created_at": {"$gt": throttle_cutoff},
+    })
+    if recent:
+        logger.info("Verification email throttled for user=%s (recent token found)", user_id)
+        return
     # Invalidate any previous unused tokens for this user
     await db.email_verification_tokens.update_many(
         {"user_id": user_id, "used": False},
@@ -151,6 +162,27 @@ async def login(data: LoginRequest, request: Request, response: Response):
         raise HTTPException(status_code=403, detail="Compte banni")
     if user.get("status") == "suspended":
         raise HTTPException(status_code=403, detail="Compte suspendu")
+
+    # Email must be verified before any login is allowed. We silently re-send a
+    # fresh verification link so the user always has an up-to-date token in
+    # their inbox, and we surface an explicit error message to the frontend.
+    if not user.get("email_verified", False):
+        try:
+            await _create_and_send_verification(
+                user_id=str(user["_id"]),
+                email=user["email"],
+                name=user.get("name", ""),
+                role=user.get("role", "client"),
+            )
+        except Exception as e:
+            logger.warning("Auto-resend on unverified login failed for %s: %s", data.email, e)
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Votre adresse email n'est pas encore vérifiée. "
+                f"Un nouveau lien de vérification vient d'être envoyé à {user['email']}."
+            ),
+        )
 
     await clear_failed_attempts(client_ip, data.email)
 

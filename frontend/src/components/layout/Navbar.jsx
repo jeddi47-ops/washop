@@ -112,32 +112,35 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white animate-slide-left">
-            <div className="p-4 flex items-center justify-between border-b border-gray-200">
+        <div className="fixed inset-0 z-50 md:hidden" data-testid="mobile-menu">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[85%] max-w-sm animate-slide-left shadow-2xl flex flex-col overflow-y-auto"
+            style={{ backgroundColor: '#ffffff', backdropFilter: 'none' }}
+          >
+            <div className="p-4 flex items-center justify-between border-b border-gray-200" style={{ backgroundColor: '#ffffff' }}>
               <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
                 <img src="/logo.png" alt="Washop" className="h-8 w-8 rounded-lg object-cover" />
-                <span className="font-bold">Wa<span className="text-[#25D366]">shop</span></span>
+                <span className="font-bold text-gray-900">Wa<span className="text-[#25D366]">shop</span></span>
               </Link>
-              <button onClick={() => setMobileOpen(false)}><X className="w-5 h-5" /></button>
+              <button onClick={() => setMobileOpen(false)} className="p-2 -m-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="mobile-menu-close"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSearch} className="p-4">
+            <form onSubmit={handleSearch} className="p-4" style={{ backgroundColor: '#ffffff' }}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t.nav.search} className="!pl-10 !py-2.5 !text-sm !rounded-full w-full" />
               </div>
             </form>
-            <div className="px-4 flex flex-col gap-1">
+            <div className="px-4 pb-6 flex flex-col gap-1 flex-1" style={{ backgroundColor: '#ffffff' }}>
               {user ? (
                 <>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center font-bold">{user.name?.[0]?.toUpperCase()}</div>
-                    <div><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-gray-500">{user.role}</p></div>
+                    <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center font-bold text-white">{user.name?.[0]?.toUpperCase()}</div>
+                    <div><p className="text-sm font-semibold text-gray-900">{user.name}</p><p className="text-xs text-gray-500">{user.role}</p></div>
                   </div>
-                  <Link to={dashboardPath} onClick={() => setMobileOpen(false)} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm transition">{t.nav.dashboard}</Link>
-                  <Link to={`/${user.role}/profile`} onClick={() => setMobileOpen(false)} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm transition">{t.nav.profile}</Link>
-                  <button onClick={() => { logout(); setMobileOpen(false); navigate('/'); }} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm text-red-400 text-left transition">{t.nav.logout}</button>
+                  <Link to={dashboardPath} onClick={() => setMobileOpen(false)} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm text-gray-800 transition">{t.nav.dashboard}</Link>
+                  <Link to={`/${user.role}/profile`} onClick={() => setMobileOpen(false)} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm text-gray-800 transition">{t.nav.profile}</Link>
+                  <button onClick={() => { logout(); setMobileOpen(false); navigate('/'); }} className="py-2.5 px-3 rounded-lg hover:bg-gray-100 text-sm text-red-500 text-left transition">{t.nav.logout}</button>
                 </>
               ) : (
                 <>

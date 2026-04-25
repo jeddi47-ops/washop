@@ -17,6 +17,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearch, setMobileSearch] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -66,7 +67,7 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   // Auto-close the mobile menu whenever the route changes.
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setMobileSearch(false); }, [location.pathname]);
 
   const handleSearch = (e) => { e.preventDefault(); if (query.trim()) { navigate(`/search?q=${encodeURIComponent(query.trim())}`); setShowSuggestions(false); setMobileOpen(false); } };
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'vendor' ? '/vendor/dashboard' : user?.role === 'employee' ? '/employee/claims' : '/client/dashboard';
@@ -130,9 +131,39 @@ export default function Navbar() {
             </div>
           )}
 
+          <button onClick={() => setMobileSearch(!mobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Rechercher" data-testid="mobile-search-toggle">
+            {mobileSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+          </button>
+
           <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg hover:bg-gray-100" data-testid="mobile-menu-btn"><Menu className="w-5 h-5" /></button>
         </div>
       </div>
+
+      {/* Mobile search panel */}
+      {mobileSearch && (
+        <div className="md:hidden px-4 pb-3 pt-2 border-b border-gray-200 bg-white/95 backdrop-blur-lg" data-testid="mobile-search-panel">
+          <form onSubmit={(e) => { handleSearch(e); setMobileSearch(false); }} ref={searchRef} className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                autoFocus
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={t.nav.search}
+                className="!pl-10 !py-2.5 !text-sm !bg-gray-50 !border-gray-200 !rounded-full w-full !text-gray-900"
+                data-testid="mobile-search-bar-input"
+              />
+            </div>
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg z-10">
+                {suggestions.map((s, i) => (
+                  <button key={i} type="button" onClick={() => { setQuery(s); navigate(`/search?q=${encodeURIComponent(s)}`); setShowSuggestions(false); setMobileSearch(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">{s}</button>
+                ))}
+              </div>
+            )}
+          </form>
+        </div>
+      )}
 
       {/* Mobile menu */}
       {/* ============ MOBILE MENU ============ */}

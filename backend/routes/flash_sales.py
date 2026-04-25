@@ -163,12 +163,19 @@ async def list_flash_sales(
     result = []
     for s in sales:
         s["id"] = str(s.pop("_id"))
-        # Enrich with product info
+        # Enrich with product info — name, price + first image (used as thumb).
         try:
             product = await db.products.find_one(
                 {"_id": ObjectId(s["product_id"])},
-                {"_id": 0, "name": 1, "price": 1, "images": 1}
+                {"_id": 0, "name": 1, "price": 1}
             )
+            if product:
+                # Images live in a dedicated `product_images` collection (not
+                # embedded), same pattern as the search endpoint.
+                images = await db.product_images.find(
+                    {"product_id": s["product_id"]}, {"_id": 0}
+                ).sort("position", 1).to_list(5)
+                product["images"] = images
             s["product"] = product
         except Exception:
             s["product"] = None

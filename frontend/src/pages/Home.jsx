@@ -109,7 +109,9 @@ function FlashSalesSection() {
         </div>
         <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
           {sales.map(s => {
-            const img = s.product?.images?.[0];
+            // Images sit in a separate collection so each item is an object
+            // with a `cloudinary_url` field, not a plain string.
+            const img = s.product?.images?.[0]?.cloudinary_url || s.product?.images?.[0];
             return (
               <Link
                 to={`/products/${s.product_id}`}

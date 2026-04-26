@@ -6,3 +6,22 @@
 .animate-progress {
   animation: progress 1s ease-in-out forwards;
 }
+
+/* ── Mobile menu animations ───────────────────────────────────────────────── */
+@keyframes slide-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-slide-left {
+  animation: slide-left 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}

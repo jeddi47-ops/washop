@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendors } from '../../lib/api';
 import { MessageCircle, Store, ChevronRight, Loader2, CheckCircle } from 'lucide-react';
+import PhoneInput from '../../components/shared/PhoneInput';
 
 const steps = ['shop', 'whatsapp', 'done'];
 
@@ -80,7 +81,7 @@ export default function VendorOnboarding() {
             {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Numero WhatsApp *</label>
-              <input value={form.whatsapp_number} onChange={e => set('whatsapp_number', e.target.value)} placeholder="+243 ..." required data-testid="onboard-whatsapp" />
+              <PhoneInput value={form.whatsapp_number} onChange={val => set('whatsapp_number', val)} testid="onboard-whatsapp" />
               <p className="text-xs text-gray-500 mt-1">Les clients vous contacteront via ce numero</p>
             </div>
             <div>

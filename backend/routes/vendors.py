@@ -4,7 +4,7 @@ from datetime import timedelta
 import uuid
 
 from database import db
-from middleware.auth import get_current_user, role_required
+from middleware.auth import get_current_user, role_required, require_vendor_subscription
 from models.schemas import VendorCreate, VendorUpdate, VendorResponse
 from utils.helpers import (
     success_response, error_response, paginated_response, validate_pagination,
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/vendors", tags=["Vendeurs"])
 
 
 @router.post("")
-async def create_or_update_vendor(data: VendorCreate, user=Depends(get_current_user)):
+async def create_or_update_vendor(data: VendorCreate, user=Depends(require_vendor_subscription)):
     """Create or update vendor profile for current user."""
     if user["role"] != "vendor":
         raise HTTPException(status_code=403, detail="Seuls les vendeurs peuvent créer une boutique")
@@ -82,7 +82,7 @@ async def get_my_vendor(user=Depends(get_current_user)):
 
 
 @router.put("/me")
-async def update_my_vendor(data: VendorUpdate, user=Depends(get_current_user)):
+async def update_my_vendor(data: VendorUpdate, user=Depends(require_vendor_subscription)):
     if user["role"] != "vendor":
         raise HTTPException(status_code=403, detail="Vous n'êtes pas vendeur")
     vendor = await db.vendors.find_one({"user_id": user["id"], "deleted_at": None})
@@ -110,7 +110,7 @@ async def update_my_vendor(data: VendorUpdate, user=Depends(get_current_user)):
 async def upload_vendor_image(
     file: UploadFile = File(...),
     kind: str = Path(..., pattern="^(avatar|banner)$"),
-    user=Depends(get_current_user),
+    user=Depends(require_vendor_subscription),
 ):
     """Upload the current vendor's avatar (logo) or banner to Cloudinary and
     persist the resulting URL on the vendor document. The previous Cloudinary
@@ -155,7 +155,7 @@ async def upload_vendor_image(
 @router.delete("/me/image/{kind}")
 async def delete_vendor_image(
     kind: str = Path(..., pattern="^(avatar|banner)$"),
-    user=Depends(get_current_user),
+    user=Depends(require_vendor_subscription),
 ):
     """Remove the vendor's avatar or banner."""
     if user["role"] != "vendor":

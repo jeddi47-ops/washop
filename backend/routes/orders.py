@@ -3,7 +3,7 @@ from bson import ObjectId
 from datetime import datetime, timezone
 
 from database import db
-from middleware.auth import get_current_user, role_required
+from middleware.auth import get_current_user, role_required, require_vendor_subscription
 from models.schemas import OrderCreate, OrderStatus
 from utils.helpers import (
     success_response, error_response, paginated_response, validate_pagination,
@@ -158,7 +158,7 @@ class OrderStatusUpdate(BaseModel):
     status: OrderStatus
 
 @router.put("/{order_id}/status")
-async def update_order_status(order_id: str, data: OrderStatusUpdate, user=Depends(get_current_user)):
+async def update_order_status(order_id: str, data: OrderStatusUpdate, user=Depends(require_vendor_subscription)):
     """Update order status (vendor or admin)."""
     try:
         order = await db.orders.find_one({"_id": ObjectId(order_id)})

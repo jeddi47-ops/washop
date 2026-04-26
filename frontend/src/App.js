@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -7,6 +7,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/shared/CartDrawer';
 import AccountStatusScreen from './components/layout/AccountStatusScreen';
+import SubscriptionExpiredScreen from './components/layout/SubscriptionExpiredScreen';
 import EmailVerificationWall from './components/layout/EmailVerificationWall';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
@@ -46,6 +47,7 @@ import AdminLogs, { AdminSearchMisses } from './pages/admin/Logs';
 import EmployeeClaims, { EmployeeClaimDetail } from './pages/employee/Claims';
 import EmployeeReviews from './pages/employee/Reviews';
 import { Toaster } from 'sonner';
+import { vendors } from './lib/api';
 import './App.css';
 
 function SplashScreen({ onDone }) {
@@ -83,6 +85,40 @@ export default function App() {
 function AppShell({ splash }) {
   const { user } = useAuth();
   const location = useLocation();
+  const [subExpired, setSubExpired]   = useState(false);
+  const [isTrial,    setIsTrial]      = useState(false);
+
+  // ── Check subscription status whenever user changes ──────────────────────
+  const checkSubscription = useCallback(async () => {
+    if (!user || user.role !== 'vendor') { setSubExpired(false); return; }
+    try {
+      const { data } = await vendors.me();
+      const v = data.data;
+      const now = new Date();
+      const trialExp = v.trial_expires_at ? new Date(v.trial_expires_at) : null;
+      const subExp   = v.subscription_expires_at ? new Date(v.subscription_expires_at) : null;
+      const trialOk  = trialExp && now < trialExp;
+      const subOk    = subExp   && now < subExp;
+      setIsTrial(!subExp);           // no paid subscription ever used → it was a trial
+      setSubExpired(!trialOk && !subOk);
+    } catch {
+      // Network error: don't block the user, fail silently
+    }
+  }, [user]);
+
+  useEffect(() => { checkSubscription(); }, [checkSubscription]);
+
+  // ── Listen for real-time 403 fired by the API interceptor ────────────────
+  useEffect(() => {
+    const handler = () => { setSubExpired(true); };
+    window.addEventListener('washop:sub-expired', handler);
+    return () => window.removeEventListener('washop:sub-expired', handler);
+  }, []);
+
+  // Subscription / trial expired → show dedicated screen instead of the app
+  if (user && user.role === 'vendor' && subExpired) {
+    return <SubscriptionExpiredScreen isTrial={isTrial} onRefresh={checkSubscription} />;
+  }
 
   // If the logged-in user is banned or suspended, we deliberately keep the
   // session alive (per product requirement) but replace the entire UI with

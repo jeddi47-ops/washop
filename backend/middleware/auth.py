@@ -140,3 +140,46 @@ async def clear_failed_attempts(ip: str, email: str):
     """Clear failed login attempts on successful login."""
     identifier = f"{ip}:{email}"
     await db.login_attempts.delete_many({"identifier": identifier})
+
+
+async def require_vendor_subscription(request: Request) -> dict:
+    """
+    Strict vendor gate: blocks any vendor whose trial AND subscription are both expired.
+    Admins and non-vendor roles pass through freely (no subscription required).
+    Use this dependency on every vendor write-action route.
+    """
+    user = await get_current_user(request)
+
+    # Only vendors are subject to subscription checks
+    if user.get("role") != "vendor":
+        return user
+
+    vendor = await db.vendors.find_one({"user_id": user["id"], "deleted_at": None})
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Profil vendeur non trouvé")
+
+    now = datetime.now(timezone.utc)
+
+    # --- Trial check ---
+    trial_expires = vendor.get("trial_expires_at")
+    if trial_expires:
+        if trial_expires.tzinfo is None:
+            trial_expires = trial_expires.replace(tzinfo=timezone.utc)
+
+    trial_active = trial_expires and now < trial_expires
+
+    # --- Subscription check ---
+    sub_expires = vendor.get("subscription_expires_at")
+    if sub_expires:
+        if sub_expires.tzinfo is None:
+            sub_expires = sub_expires.replace(tzinfo=timezone.utc)
+
+    sub_active = sub_expires and now < sub_expires
+
+    if not trial_active and not sub_active:
+        raise HTTPException(
+            status_code=403,
+            detail="Votre essai gratuit ou abonnement est expiré. Veuillez activer une clé d'accès pour continuer."
+        )
+
+    return user

@@ -23,6 +23,14 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    // Subscription / trial expired → notify App.js via custom event
+    if (
+      err.response?.status === 403 &&
+      typeof err.response?.data?.detail === 'string' &&
+      err.response.data.detail.includes('essai gratuit ou abonnement')
+    ) {
+      window.dispatchEvent(new CustomEvent('washop:sub-expired'));
+    }
     return Promise.reject(err);
   }
 );

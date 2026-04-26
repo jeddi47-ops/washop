@@ -4,6 +4,7 @@ import { vendors } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChevronLeft, Loader2, CheckCircle, Settings, Store, Link2, Camera, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ShareShopCard from '../../components/shared/ShareShopCard';
+import PhoneInput from '../../components/shared/PhoneInput';
 
 export default function VendorProfile() {
   const { user, checkAuth } = useAuth();
@@ -101,7 +102,7 @@ export default function VendorProfile() {
           </div>
           <div>
             <label className="text-sm text-gray-500 mb-1 block">Numero WhatsApp</label>
-            <input value={form.whatsapp_number} onChange={e => set('whatsapp_number', e.target.value)} placeholder="+243..." required data-testid="whatsapp-number" />
+            <PhoneInput value={form.whatsapp_number} onChange={val => set('whatsapp_number', val)} testid="whatsapp-number" />
           </div>
           <button type="submit" disabled={saving} className="btn-primary w-full flex items-center justify-center gap-2 !text-sm" data-testid="save-shop">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4" /> : null}

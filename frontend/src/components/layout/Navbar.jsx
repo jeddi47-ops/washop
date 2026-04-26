@@ -24,6 +24,7 @@ export default function Navbar() {
   const [userMenu, setUserMenu] = useState(false);
   const [unread, setUnread] = useState(0);
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
   const userRef = useRef(null);
   const closeBtnRef = useRef(null);
 
@@ -142,7 +143,7 @@ export default function Navbar() {
       {/* Mobile search panel */}
       {mobileSearch && (
         <div className="md:hidden px-4 pb-3 pt-2 border-b border-gray-200 bg-white/95 backdrop-blur-lg" data-testid="mobile-search-panel">
-          <form onSubmit={(e) => { handleSearch(e); setMobileSearch(false); }} ref={searchRef} className="relative">
+          <form onSubmit={(e) => { handleSearch(e); setMobileSearch(false); }} ref={mobileSearchRef} className="relative">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -177,15 +178,20 @@ export default function Navbar() {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+            className="absolute inset-0 bg-black/60 animate-fade-in"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
 
           {/* Drawer */}
           <aside
-            className="absolute left-0 top-0 bottom-0 w-[88%] max-w-sm shadow-2xl flex flex-col animate-slide-left"
-            style={{ backgroundColor: '#ffffff', backdropFilter: 'none' }}
+            className="absolute left-0 top-0 bottom-0 w-[88%] max-w-sm flex flex-col animate-slide-left"
+            style={{
+              backgroundColor: '#ffffff',
+              backdropFilter: 'none',
+              boxShadow: '4px 0 32px rgba(0,0,0,0.25)',
+              borderRight: '2px solid #25D366',
+            }}
           >
             {/* HEADER */}
             <div

@@ -268,7 +268,8 @@ async def forgot_password(data: ForgotPasswordRequest):
         "created_at": utc_now()
     })
 
-    reset_link = f"/reset-password?token={token}"
+    frontend_url = os.environ.get("FRONTEND_URL", "https://washop.netlify.app")
+    reset_link = f"{frontend_url}/reset-password?token={token}"
     logger.info(f"Password reset link for {data.email}: {reset_link}")
 
     from utils.email_service import send_password_reset

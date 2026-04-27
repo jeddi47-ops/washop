@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { products as productsApi, categories as catsApi, vendors } from '../../lib/api';
 import { Plus, X, ChevronLeft, Loader2, Trash2, Image, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { CURRENCY_SYMBOLS } from '../../components/shared/ProductCard';
 
 export default function VendorProducts() {
   const [items, setItems] = useState([]);
@@ -80,7 +81,7 @@ export default function VendorProducts() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{p.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[#25D366] text-sm font-bold">{p.price}$</span>
+                    <span className="text-[#25D366] text-sm font-bold">{p.price} {CURRENCY_SYMBOLS[p.currency] ?? p.currency ?? '$'}</span>
                     <span className="text-xs text-gray-500">Stock: {p.stock}</span>
                   </div>
                 </div>
@@ -105,7 +106,7 @@ export default function VendorProducts() {
 
 function ProductDrawer({ product, onClose, onSaved }) {
   const [cats, setCats] = useState([]);
-  const [form, setForm] = useState({ name: '', category_id: '', description: '', price: '', stock: '', is_active: true });
+  const [form, setForm] = useState({ name: '', category_id: '', description: '', price: '', currency: 'USD', stock: '', is_active: true });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -113,7 +114,7 @@ function ProductDrawer({ product, onClose, onSaved }) {
 
   useEffect(() => { catsApi.list({ limit: 100 }).then(r => setCats(r.data.data || [])).catch(() => {}); }, []);
   useEffect(() => {
-    if (product) setForm({ name: product.name, category_id: product.category_id, description: product.description || '', price: String(product.price), stock: String(product.stock), is_active: product.is_active });
+    if (product) setForm({ name: product.name, category_id: product.category_id, description: product.description || '', price: String(product.price), currency: product.currency || 'USD', stock: String(product.stock), is_active: product.is_active });
   }, [product]);
 
   const set = (k, v) => {
@@ -159,7 +160,7 @@ function ProductDrawer({ product, onClose, onSaved }) {
     setFieldErrors({});
     setLoading(true);
     try {
-      const payload = { name: form.name, category_id: form.category_id, description: form.description, price: parseFloat(form.price), stock: parseInt(form.stock, 10), is_active: form.is_active };
+      const payload = { name: form.name, category_id: form.category_id, description: form.description, price: parseFloat(form.price), currency: form.currency, stock: parseInt(form.stock, 10), is_active: form.is_active };
       let pid;
       if (product) {
         await productsApi.update(product.id, payload);
@@ -236,8 +237,20 @@ function ProductDrawer({ product, onClose, onSaved }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Prix ($)</label>
-              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" />
+              <label className="text-sm text-gray-500 mb-1 block">Prix et devise</label>
+              <div className="flex gap-2">
+                <select
+                  value={form.currency}
+                  onChange={e => set('currency', e.target.value)}
+                  className="flex-shrink-0 border border-gray-200 rounded-xl bg-gray-50 text-sm px-2 py-2 outline-none focus:border-[#25D366] transition"
+                  data-testid="product-currency"
+                >
+                  {Object.entries(CURRENCY_SYMBOLS).map(([code, sym]) => (
+                    <option key={code} value={code}>{code} ({sym})</option>
+                  ))}
+                </select>
+                <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" placeholder="0.00" />
+              </div>
               {fieldErrors.price && <p className="text-xs text-red-500 mt-1" data-testid="product-price-error">{fieldErrors.price}</p>}
             </div>
             <div>

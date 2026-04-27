@@ -4,7 +4,7 @@ import { products as productsApi, reviews as reviewsApi, vendors as vendorsApi, 
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useLang } from '../contexts/LangContext';
-import ProductCard, { SkeletonCard } from '../components/shared/ProductCard';
+import ProductCard, { SkeletonCard, CURRENCY_SYMBOLS } from '../components/shared/ProductCard';
 import { Star, MessageCircle, ShoppingBag, ChevronLeft, ChevronRight, ShieldCheck, Loader2, Send } from 'lucide-react';
 
 export default function ProductDetail() {
@@ -46,6 +46,7 @@ export default function ProductDetail() {
   const images = product.images || [];
   const hasFlash = !!product.flash_sale;
   const price = hasFlash ? product.flash_sale.discounted_price : product.price;
+  const sym = CURRENCY_SYMBOLS[product?.currency] ?? product?.currency ?? '$';
   const inStock = product.stock > 0;
   const avgRating = pReviews.length > 0 ? (pReviews.reduce((s, r) => s + r.rating, 0) / pReviews.length) : 0;
 
@@ -101,8 +102,8 @@ export default function ProductDetail() {
               <span className={`text-xs font-bold px-2 py-1 rounded-full ${inStock ? 'bg-green-50 text-[#25D366]' : 'bg-red-50 text-red-500'}`}>{inStock ? t.product.in_stock : t.product.out_of_stock} ({product.stock})</span>
             </div>
             <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-3xl font-extrabold text-[#25D366]">{price?.toFixed(2)} $</span>
-              {hasFlash && <span className="text-lg text-gray-400 line-through">{product.price?.toFixed(2)} $</span>}
+              <span className="text-3xl font-extrabold text-[#25D366]">{price?.toFixed(2)} {sym}</span>
+              {hasFlash && <span className="text-lg text-gray-400 line-through">{product.price?.toFixed(2)} {sym}</span>}
             </div>
 
             {/* Vendor card */}

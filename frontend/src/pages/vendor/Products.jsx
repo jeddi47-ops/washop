@@ -235,22 +235,23 @@ function ProductDrawer({ product, onClose, onSaved }) {
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={5000} className={fieldClass('description')} data-testid="product-description" />
             {fieldErrors.description && <p className="text-xs text-red-500 mt-1">{fieldErrors.description}</p>}
           </div>
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Devise</label>
+            <select
+              value={form.currency}
+              onChange={e => set('currency', e.target.value)}
+              className="w-full border border-gray-200 rounded-xl bg-gray-50 text-sm px-3 py-2.5 outline-none focus:border-[#25D366] transition"
+              data-testid="product-currency"
+            >
+              {Object.entries(CURRENCY_SYMBOLS).map(([code, sym]) => (
+                <option key={code} value={code}>{code} — {sym}</option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Prix et devise</label>
-              <div className="flex gap-2">
-                <select
-                  value={form.currency}
-                  onChange={e => set('currency', e.target.value)}
-                  className="flex-shrink-0 border border-gray-200 rounded-xl bg-gray-50 text-sm px-2 py-2 outline-none focus:border-[#25D366] transition"
-                  data-testid="product-currency"
-                >
-                  {Object.entries(CURRENCY_SYMBOLS).map(([code, sym]) => (
-                    <option key={code} value={code}>{code} ({sym})</option>
-                  ))}
-                </select>
-                <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={`flex-1 ${fieldClass('price')}`} data-testid="product-price" placeholder="0.00" />
-              </div>
+              <label className="text-sm text-gray-500 mb-1 block">Prix</label>
+              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" placeholder="0.00" />
               {fieldErrors.price && <p className="text-xs text-red-500 mt-1" data-testid="product-price-error">{fieldErrors.price}</p>}
             </div>
             <div>

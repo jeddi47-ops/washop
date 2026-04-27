@@ -5,12 +5,21 @@ import { useAuth } from '../../contexts/AuthContext';
 import { wishlist as wishlistApi } from '../../lib/api';
 import { useLang } from '../../contexts/LangContext';
 
+export const CURRENCY_SYMBOLS = {
+  USD: '$', EUR: '€', GBP: '£',
+  CDF: 'FC', XAF: 'FCFA', XOF: 'FCFA',
+  NGN: '₦', GHS: 'GH₵', KES: 'KSh',
+  ZAR: 'R', MAD: 'DH', DZD: 'DA', TND: 'DT',
+};
+
 export default function ProductCard({ product, onWishlistToggle }) {
   const { user } = useAuth();
   const { t } = useLang();
   const img = product.images?.[0]?.cloudinary_url;
   const hasFlash = !!product.flash_sale;
   const price = hasFlash ? product.flash_sale.discounted_price : product.price;
+  const currency = product.currency || 'USD';
+  const sym = CURRENCY_SYMBOLS[currency] ?? currency;
 
   const toggleWish = async (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -33,8 +42,8 @@ export default function ProductCard({ product, onWishlistToggle }) {
       <div className="p-3">
         <p className="text-sm font-medium truncate group-hover:text-[#25D366] transition">{product.name}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[#25D366] font-bold">{price?.toFixed(2)} $</span>
-          {hasFlash && <span className="text-xs text-gray-500 line-through">{product.price?.toFixed(2)} $</span>}
+          <span className="text-[#25D366] font-bold">{price?.toFixed(2)} {sym}</span>
+          {hasFlash && <span className="text-xs text-gray-500 line-through">{product.price?.toFixed(2)} {sym}</span>}
         </div>
         {product.avg_rating > 0 && (
           <div className="flex items-center gap-1 mt-1">

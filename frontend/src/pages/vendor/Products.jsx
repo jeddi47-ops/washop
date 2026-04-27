@@ -249,7 +249,7 @@ function ProductDrawer({ product, onClose, onSaved }) {
                     <option key={code} value={code}>{code} ({sym})</option>
                   ))}
                 </select>
-                <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" placeholder="0.00" />
+                <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={`flex-1 ${fieldClass('price')}`} data-testid="product-price" placeholder="0.00" />
               </div>
               {fieldErrors.price && <p className="text-xs text-red-500 mt-1" data-testid="product-price-error">{fieldErrors.price}</p>}
             </div>

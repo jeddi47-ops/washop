@@ -5,11 +5,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ChevronLeft, Loader2, CheckCircle, Settings, Store, Link2, Camera, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ShareShopCard from '../../components/shared/ShareShopCard';
 import PhoneInput from '../../components/shared/PhoneInput';
+import { THEMES } from '../ShopPage';
 
 export default function VendorProfile() {
   const { user, checkAuth } = useAuth();
   const [vendor, setVendor] = useState(null);
-  const [form, setForm] = useState({ shop_name: '', description: '', whatsapp_number: '', instagram_url: '', tiktok_url: '', facebook_url: '' });
+  const [form, setForm] = useState({ shop_name: '', description: '', whatsapp_number: '', instagram_url: '', tiktok_url: '', facebook_url: '', shop_theme: 'emeraude' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -22,6 +23,7 @@ export default function VendorProfile() {
       setForm({
         shop_name: v.shop_name || '', description: v.description || '', whatsapp_number: v.whatsapp_number || '',
         instagram_url: v.social_links?.instagram_url || '', tiktok_url: v.social_links?.tiktok_url || '', facebook_url: v.social_links?.facebook_url || '',
+        shop_theme: v.shop_theme || 'emeraude',
       });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -34,6 +36,7 @@ export default function VendorProfile() {
     try {
       await vendors.updateMe({
         shop_name: form.shop_name, description: form.description, whatsapp_number: form.whatsapp_number,
+        shop_theme: form.shop_theme,
         social_links: { instagram_url: form.instagram_url || undefined, tiktok_url: form.tiktok_url || undefined, facebook_url: form.facebook_url || undefined }
       });
       setSaved(true);
@@ -109,6 +112,44 @@ export default function VendorProfile() {
             {saved ? 'Sauvegarde !' : 'Enregistrer'}
           </button>
         </form>
+
+        {/* Theme selector */}
+        <div className="glass p-5 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🎨</span>
+            <h2 className="font-semibold text-sm">Thème de la boutique</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {Object.entries(THEMES).map(([key, th]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => set('shop_theme', key)}
+                className="flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition"
+                style={{
+                  borderColor: form.shop_theme === key ? th.primary : '#e5e7eb',
+                  background: form.shop_theme === key ? th.card : '#fafafa',
+                }}
+                data-testid={`theme-${key}`}
+              >
+                <div className="w-8 h-8 rounded-full shadow-sm" style={{ background: `linear-gradient(135deg, ${th.primary}, ${th.dark})` }} />
+                <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight">{th.name}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await vendors.updateMe({ shop_theme: form.shop_theme });
+                setSaved(true); setTimeout(() => setSaved(false), 3000);
+              } catch {}
+            }}
+            className="btn-primary w-full !text-sm"
+          >
+            Appliquer le thème
+          </button>
+        </div>
 
         {/* Social links */}
         <form onSubmit={save} className="glass p-5 space-y-4">

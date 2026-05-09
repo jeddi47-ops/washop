@@ -36,6 +36,8 @@ async def create_or_update_vendor(data: VendorCreate, user=Depends(require_vendo
             "whatsapp_number": data.whatsapp_number,
             "social_links": data.social_links or {},
         }
+        if data.shop_theme is not None:
+            update_data["shop_theme"] = data.shop_theme
         await db.vendors.update_one({"_id": existing["_id"]}, {"$set": update_data})
         vendor = await db.vendors.find_one({"_id": existing["_id"]}, {"_id": 0})
         vendor["id"] = str(existing["_id"])

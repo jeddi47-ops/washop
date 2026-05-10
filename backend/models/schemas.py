@@ -216,6 +216,7 @@ class ProductCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=300)
     description: Optional[str] = Field(None, max_length=5000)
     price: float = Field(..., gt=0)
+    currency: str = Field("USD", max_length=10)
     stock: int = Field(..., ge=0)
     is_featured: bool = False
 
@@ -224,6 +225,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=300)
     description: Optional[str] = Field(None, max_length=5000)
     price: Optional[float] = Field(None, gt=0)
+    currency: Optional[str] = Field(None, max_length=10)
     stock: Optional[int] = Field(None, ge=0)
     is_featured: Optional[bool] = None
     is_active: Optional[bool] = None
@@ -236,6 +238,7 @@ class ProductResponse(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
+    currency: str = "USD"
     stock: int
     is_featured: bool = False
     is_active: bool = True

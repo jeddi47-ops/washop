@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { vendors, accessKeys } from '../../lib/api';
-import { ChevronLeft, Key, Clock, Loader2, CheckCircle, AlertTriangle, Crown, ShoppingBag, Sparkles, Check, X as XIcon } from 'lucide-react';
+import { ChevronLeft, Key, Clock, Loader2, CheckCircle, AlertTriangle, Crown, ShoppingBag, Check, X as XIcon } from 'lucide-react';
 
-const planColor = { basic: 'from-gray-100 to-gray-200', premium: 'from-blue-50 to-blue-100', extra: 'from-green-50 to-green-100' };
-const planBg = { basic: 'bg-gray-100 text-gray-600', premium: 'bg-blue-50 text-blue-600', extra: 'bg-green-50 text-[#25D366]' };
-const planIcon = { basic: <ShoppingBag className="w-8 h-8" />, premium: <Crown className="w-8 h-8" />, extra: <Sparkles className="w-8 h-8" /> };
+const planColor = { basic: 'from-gray-100 to-gray-200', premium: 'from-blue-50 to-blue-100' };
+const planBg = { basic: 'bg-gray-100 text-gray-600', premium: 'bg-blue-50 text-blue-600' };
+const planIcon = { basic: <ShoppingBag className="w-8 h-8" />, premium: <Crown className="w-8 h-8" /> };
 
 export default function VendorSubscription() {
   const [vendor, setVendor] = useState(null);
@@ -51,15 +51,43 @@ export default function VendorSubscription() {
   const plan = vendor?.subscription_type || 'basic';
 
   const checkoutLinks = {
-    Basic: { monthly: 'https://nzaofhms.mychariow.shop/prd_fih09v/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_vh8k9t/checkout' },
+    Basic:   { monthly: 'https://nzaofhms.mychariow.shop/prd_fih09v/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_vh8k9t/checkout' },
     Premium: { monthly: 'https://nzaofhms.mychariow.shop/prd_u4c5d3/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_w89k2c/checkout' },
-    Extra: { monthly: 'https://nzaofhms.mychariow.shop/prd_mtxh4x/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_dlwst0/checkout' },
   };
 
   const plans = [
-    { name: 'Basic', price: '10$/mois', features: ['15 produits max', 'Boutique visible', 'Rapport mensuel'], missing: ['Priorite recherche', 'Produit mis en avant', 'Rapport recherches'] },
-    { name: 'Premium', price: '20$/mois', features: ['Produits illimites', 'Priorite recherche', 'Produit mis en avant/jour', 'Rapport mensuel'], missing: ['Email promo clients', 'Rapport recherches'] },
-    { name: 'Extra', price: '40$/mois', features: ['Produits illimites', 'Priorite max', 'Produits promus', 'Email promo clients', 'Rapport recherches manquees', 'Rapport mensuel detaille'], missing: [] },
+    {
+      name: 'Basic', price: '10$/mois',
+      features: [
+        '30 produits maximum',
+        'Boutique premium visible',
+        '3 thèmes de couleur',
+        '3 catégories boutique',
+        'Statistiques basiques',
+        'Lien boutique unique',
+      ],
+      missing: [
+        'Badge vérifié',
+        'Produit mis en avant',
+        'Thèmes illimités',
+        'Catégories illimitées',
+        'Statistiques avancées',
+      ],
+    },
+    {
+      name: 'Premium', price: '20$/mois',
+      features: [
+        'Produits illimités',
+        'Boutique premium visible',
+        '8 thèmes de couleur',
+        'Catégories illimitées',
+        'Badge vérifié ✓',
+        '1 produit mis en avant/jour',
+        'Statistiques avancées',
+        'Lien boutique unique',
+      ],
+      missing: [],
+    },
   ];
 
   return (
@@ -106,21 +134,53 @@ export default function VendorSubscription() {
         {/* Plan comparison */}
         <div className="glass p-5 mb-6">
           <h2 className="font-bold mb-4">Comparer les plans</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plans.map(p => {
               const isCurrent = p.name.toLowerCase() === plan;
+              const isPremium = p.name === 'Premium';
               return (
-                <div key={p.name} className={`rounded-xl p-4 border transition ${isCurrent ? 'border-[#25D366]/40 bg-[#25D366]/5' : 'border-gray-200 bg-gray-50'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold">{p.name}</h3>
-                    {isCurrent && <span className="text-[10px] bg-[#25D366] text-white px-2 py-0.5 rounded-full font-bold">ACTUEL</span>}
+                <div key={p.name} className={`rounded-xl p-5 border-2 transition relative ${isCurrent ? 'border-[#25D366]' : isPremium ? 'border-blue-400' : 'border-gray-200'} bg-white`}>
+                  {isPremium && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                      RECOMMANDÉ
+                    </span>
+                  )}
+                  {isCurrent && (
+                    <span className="absolute -top-3 right-4 bg-[#25D366] text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                      ACTUEL
+                    </span>
+                  )}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg" style={{ background: isPremium ? '#eff6ff' : '#f9fafb' }}>
+                      {React.cloneElement(planIcon[p.name.toLowerCase()] || planIcon.basic, {
+                        className: `w-6 h-6 ${isPremium ? 'text-blue-500' : 'text-gray-500'}`
+                      })}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{p.name}</h3>
+                      <p className="text-2xl font-extrabold" style={{ color: isPremium ? '#3b82f6' : '#25D366' }}>{p.price}</p>
+                    </div>
                   </div>
-                  <p className="text-xl font-bold text-[#25D366] mb-3">{p.price}</p>
-                  <div className="space-y-2">
-                    {p.features.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><Check className="w-3 h-3 text-[#25D366] flex-shrink-0" /><span className="text-gray-600">{f}</span></div>)}
-                    {p.missing.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs"><XIcon className="w-3 h-3 text-gray-500 flex-shrink-0" /><span className="text-gray-500">{f}</span></div>)}
+                  <div className="space-y-2 mb-5">
+                    {p.features.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <Check className="w-3.5 h-3.5 text-[#25D366] flex-shrink-0" />
+                        <span className="text-gray-700">{f}</span>
+                      </div>
+                    ))}
+                    {p.missing.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <XIcon className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                        <span className="text-gray-400">{f}</span>
+                      </div>
+                    ))}
                   </div>
-                  {!isCurrent && <a href={checkoutLinks[p.name]?.monthly} target="_blank" rel="noreferrer" className="mt-4 block text-center py-2 rounded-lg text-xs font-semibold btn-primary">Souscrire</a>}
+                  {!isCurrent && (
+                    <a href={checkoutLinks[p.name]?.monthly} target="_blank" rel="noreferrer"
+                      className={`block text-center py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 ${isPremium ? 'bg-blue-500' : 'bg-[#25D366]'}`}>
+                      Souscrire →
+                    </a>
+                  )}
                 </div>
               );
             })}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { vendors, orders as ordersApi, products as productsApi } from '../../lib/api';
-import { Package, Eye, TrendingUp, Star, ChevronRight, Clock, AlertTriangle, Key, Plus, BarChart3, ShoppingBag, Settings, Bell } from 'lucide-react';
+import { Package, Eye, TrendingUp, Star, ChevronRight, Clock, AlertTriangle, Key, Plus, BarChart3, ShoppingBag, Settings, Bell, Store } from 'lucide-react';
 import ShareShopCard from '../../components/shared/ShareShopCard';
 
 const statusColor = { pending: 'bg-gray-500/20 text-gray-400', whatsapp_redirected: 'bg-blue-500/20 text-blue-400', confirmed: 'bg-[#25D366]/20 text-[#25D366]', cancelled: 'bg-red-500/20 text-red-400' };
@@ -70,9 +70,23 @@ export default function VendorDashboard() {
         )}
 
         {/* Welcome */}
-        <div className="glass p-6 mb-6">
-          <h1 className="text-2xl font-bold">{vendor?.shop_name || user?.name}</h1>
-          <p className="text-sm text-gray-400 mt-1">Tableau de bord vendeur</p>
+        <div className="glass p-6 mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">{vendor?.shop_name || user?.name}</h1>
+            <p className="text-sm text-gray-400 mt-1">Tableau de bord vendeur</p>
+          </div>
+          {vendor?.shop_slug && (
+            <a
+              href={`/boutiques/${vendor.shop_slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition"
+              data-testid="view-shop-btn"
+            >
+              <Store className="w-4 h-4" />
+              Voir ma boutique
+            </a>
+          )}
         </div>
 
         {/* Share shop */}

@@ -181,13 +181,29 @@ export function PricingSection() {
   const checkoutLinks = {
     Basic: { monthly: 'https://nzaofhms.mychariow.shop/prd_fih09v/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_vh8k9t/checkout' },
     Premium: { monthly: 'https://nzaofhms.mychariow.shop/prd_u4c5d3/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_w89k2c/checkout' },
-    Extra: { monthly: 'https://nzaofhms.mychariow.shop/prd_mtxh4x/checkout', annual: 'https://nzaofhms.mychariow.shop/prd_dlwst0/checkout' },
   };
 
   const plans = [
-    { name: 'Basic', price: annual ? 96 : 10, icon: <ShoppingBag className="w-6 h-6" />, color: 'gray', features: [{ text: `15 ${t.pricing.products}`, ok: true }, { text: t.pricing.search_priority, ok: false }, { text: t.pricing.daily_featured, ok: false }, { text: t.pricing.promoted_7, ok: false }, { text: t.pricing.search_misses, ok: false }, { text: t.pricing.promo_email, ok: false }, { text: t.pricing.monthly_report, ok: true }] },
-    { name: 'Premium', price: annual ? 192 : 20, icon: <Crown className="w-6 h-6" />, color: 'blue', features: [{ text: `${t.pricing.unlimited} ${t.pricing.products}`, ok: true }, { text: t.pricing.search_priority, ok: true }, { text: t.pricing.daily_featured, ok: true }, { text: t.pricing.promoted_7, ok: false }, { text: t.pricing.search_misses, ok: false }, { text: t.pricing.promo_email, ok: false }, { text: t.pricing.monthly_report, ok: true }] },
-    { name: 'Extra', price: annual ? 384 : 40, icon: <Sparkles className="w-6 h-6" />, color: 'green', recommended: true, features: [{ text: `${t.pricing.unlimited} ${t.pricing.products}`, ok: true }, { text: t.pricing.search_priority, ok: true }, { text: t.pricing.daily_featured, ok: true }, { text: t.pricing.promoted_7, ok: true }, { text: t.pricing.search_misses, ok: true }, { text: t.pricing.promo_email, ok: true }, { text: t.pricing.monthly_report, ok: true }] },
+    { name: 'Basic', price: annual ? 96 : 10, icon: <ShoppingBag className="w-6 h-6" />, color: 'gray', features: [
+      { text: '30 produits maximum', ok: true },
+      { text: 'Boutique premium visible', ok: true },
+      { text: '3 thèmes de couleur', ok: true },
+      { text: '3 catégories boutique', ok: true },
+      { text: 'Statistiques basiques', ok: true },
+      { text: 'Badge vérifié', ok: false },
+      { text: 'Produit mis en avant', ok: false },
+      { text: 'Thèmes illimités', ok: false },
+    ]},
+    { name: 'Premium', price: annual ? 192 : 20, icon: <Crown className="w-6 h-6" />, color: 'blue', recommended: true, features: [
+      { text: 'Produits illimités', ok: true },
+      { text: 'Boutique premium visible', ok: true },
+      { text: '8 thèmes de couleur', ok: true },
+      { text: 'Catégories illimitées', ok: true },
+      { text: 'Statistiques avancées', ok: true },
+      { text: 'Badge vérifié ✓', ok: true },
+      { text: '1 produit mis en avant/jour', ok: true },
+      { text: 'Lien boutique unique', ok: true },
+    ]},
   ];
 
   return (
@@ -248,10 +264,10 @@ function TrendingSection() {
 function Testimonials() {
   const { t } = useLang();
   const reviews = [
-    { name: 'Amina K.', role: 'Vendeuse Extra', stars: 5, text: "Washop a transforme mon business. Mes clients commandent directement sur WhatsApp, c'est simple et efficace !" },
+    { name: 'Amina K.', role: 'Vendeuse Premium', stars: 5, text: "Washop a transforme mon business. Mes clients commandent directement sur WhatsApp, c'est simple et efficace !" },
     { name: 'Jean-Paul M.', role: 'Vendeur Premium', stars: 5, text: "En 3 mois, j'ai double mes ventes. La visibilite sur Washop est incroyable." },
     { name: 'Sophie L.', role: 'Vendeuse Basic', stars: 4, text: "Tres facile a utiliser. J'ai lance ma boutique en moins de 10 minutes !" },
-    { name: 'David N.', role: 'Vendeur Extra', stars: 5, text: "Le rapport des recherches manquees m'aide a savoir exactement quoi vendre. Genial !" },
+    { name: 'David N.', role: 'Vendeur Premium', stars: 5, text: "Les statistiques m'aident a savoir exactement quels produits interessent mes clients. Genial !" },
     { name: 'Marie T.', role: 'Vendeuse Premium', stars: 4, text: "Mes clients adorent commander via WhatsApp. Plus besoin de site web complique." },
   ];
   return (

@@ -287,22 +287,22 @@ function ProductDrawer({ product, onClose, onSaved }) {
           </div>
 
           {/* Produit populaire — Premium uniquement */}
-          <div className={`flex items-center justify-between p-3 rounded-xl border transition ${vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra' ? 'border-gray-200 bg-gray-50' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+          <div className={`flex items-center justify-between p-3 rounded-xl border transition ${!isBasic ? 'border-gray-200 bg-gray-50' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
             <div>
               <p className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                 <Star className="w-4 h-4 text-yellow-400" />
                 Produit populaire
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra'
+                {!isBasic
                   ? 'Apparaît dans l\'onglet "Populaires" de votre boutique'
                   : '🔒 Fonctionnalité réservée au plan Premium'}
               </p>
             </div>
             <button
               type="button"
-              disabled={vendor?.subscription_type !== 'premium' && vendor?.subscription_type !== 'extra'}
-              onClick={() => (vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra') && set('is_featured', !form.is_featured)}
+              disabled={isBasic}
+              onClick={() => !isBasic && set('is_featured', !form.is_featured)}
               data-testid="product-featured-toggle"
             >
               {form.is_featured

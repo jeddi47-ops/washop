@@ -4,7 +4,7 @@ from typing import List, Optional
 import uuid
 
 from database import db
-from middleware.auth import get_current_user, role_required
+from middleware.auth import get_current_user, role_required, require_vendor_subscription
 from models.schemas import ProductCreate, ProductUpdate
 from utils.helpers import success_response, error_response, paginated_response, validate_pagination, utc_now
 from utils.cloudinary_service import (
@@ -28,7 +28,7 @@ async def check_product_quota(vendor_id: str, vendor_sub_type: str):
 
 
 @router.post("")
-async def create_product(data: ProductCreate, user=Depends(get_current_user)):
+async def create_product(data: ProductCreate, user=Depends(require_vendor_subscription)):
     if user["role"] != "vendor":
         raise HTTPException(status_code=403, detail="Seuls les vendeurs peuvent créer des produits")
 
@@ -56,6 +56,7 @@ async def create_product(data: ProductCreate, user=Depends(get_current_user)):
         "description": data.description or "",
         "price": data.price,
         "currency": data.currency or "USD",
+        "promo_price": data.promo_price if data.promo_price and data.promo_price < data.price else None,
         "stock": data.stock,
         "is_featured": data.is_featured,
         "is_active": True,
@@ -220,7 +221,7 @@ async def get_product(product_id: str, increment_click: bool = Query(False)):
 
 
 @router.put("/{product_id}")
-async def update_product(product_id: str, data: ProductUpdate, user=Depends(get_current_user)):
+async def update_product(product_id: str, data: ProductUpdate, user=Depends(require_vendor_subscription)):
     if user["role"] not in ("vendor", "admin"):
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
@@ -247,7 +248,7 @@ async def update_product(product_id: str, data: ProductUpdate, user=Depends(get_
 
 
 @router.delete("/{product_id}")
-async def soft_delete_product(product_id: str, user=Depends(get_current_user)):
+async def soft_delete_product(product_id: str, user=Depends(require_vendor_subscription)):
     if user["role"] not in ("vendor", "admin"):
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
@@ -281,7 +282,7 @@ async def soft_delete_product(product_id: str, user=Depends(get_current_user)):
 async def upload_product_images(
     product_id: str,
     files: List[UploadFile] = File(...),
-    user=Depends(get_current_user)
+    user=Depends(require_vendor_subscription)
 ):
     """Upload images for a product (max 5 per product, max 2MB each)."""
     if user["role"] not in ("vendor", "admin"):
@@ -351,7 +352,7 @@ async def upload_product_images(
 
 
 @router.delete("/{product_id}/images/{image_id}")
-async def delete_product_image(product_id: str, image_id: str, user=Depends(get_current_user)):
+async def delete_product_image(product_id: str, image_id: str, user=Depends(require_vendor_subscription)):
     if user["role"] not in ("vendor", "admin"):
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 

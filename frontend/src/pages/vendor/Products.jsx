@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { products as productsApi, categories as catsApi, vendors } from '../../lib/api';
-import { Plus, X, ChevronLeft, Loader2, Trash2, Image, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { Plus, X, ChevronLeft, Loader2, Trash2, Image, ToggleLeft, ToggleRight, Search, Star } from 'lucide-react';
 import { CURRENCY_SYMBOLS } from '../../components/shared/ProductCard';
 
 export default function VendorProducts() {
@@ -81,7 +81,7 @@ export default function VendorProducts() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{p.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[#25D366] text-sm font-bold">{p.price} {CURRENCY_SYMBOLS[p.currency] ?? p.currency ?? '$'}</span>
+                    <span className="text-[#25D366] text-sm font-bold">{p.price}$</span>
                     <span className="text-xs text-gray-500">Stock: {p.stock}</span>
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function VendorProducts() {
 
 function ProductDrawer({ product, onClose, onSaved }) {
   const [cats, setCats] = useState([]);
-  const [form, setForm] = useState({ name: '', category_id: '', description: '', price: '', currency: 'USD', stock: '', is_active: true });
+  const [form, setForm] = useState({ name: '', category_id: '', description: '', price: '', currency: 'USD', promo_price: '', stock: '', is_active: true, is_featured: false });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -114,7 +114,7 @@ function ProductDrawer({ product, onClose, onSaved }) {
 
   useEffect(() => { catsApi.list({ limit: 100 }).then(r => setCats(r.data.data || [])).catch(() => {}); }, []);
   useEffect(() => {
-    if (product) setForm({ name: product.name, category_id: product.category_id, description: product.description || '', price: String(product.price), currency: product.currency || 'USD', stock: String(product.stock), is_active: product.is_active });
+    if (product) setForm({ name: product.name, category_id: product.category_id, description: product.description || '', price: String(product.price), currency: product.currency || 'USD', promo_price: product.promo_price ? String(product.promo_price) : '', stock: String(product.stock), is_active: product.is_active, is_featured: product.is_featured || false });
   }, [product]);
 
   const set = (k, v) => {
@@ -160,7 +160,17 @@ function ProductDrawer({ product, onClose, onSaved }) {
     setFieldErrors({});
     setLoading(true);
     try {
-      const payload = { name: form.name, category_id: form.category_id, description: form.description, price: parseFloat(form.price), currency: form.currency, stock: parseInt(form.stock, 10), is_active: form.is_active };
+      const payload = {
+        name: form.name,
+        category_id: form.category_id,
+        description: form.description,
+        price: parseFloat(form.price),
+        currency: form.currency,
+        promo_price: form.promo_price && parseFloat(form.promo_price) > 0 && parseFloat(form.promo_price) < parseFloat(form.price) ? parseFloat(form.promo_price) : null,
+        stock: parseInt(form.stock, 10),
+        is_active: form.is_active,
+        is_featured: form.is_featured,
+      };
       let pid;
       if (product) {
         await productsApi.update(product.id, payload);
@@ -235,23 +245,10 @@ function ProductDrawer({ product, onClose, onSaved }) {
             <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4} maxLength={5000} className={fieldClass('description')} data-testid="product-description" />
             {fieldErrors.description && <p className="text-xs text-red-500 mt-1">{fieldErrors.description}</p>}
           </div>
-          <div>
-            <label className="text-sm text-gray-500 mb-1 block">Devise</label>
-            <select
-              value={form.currency}
-              onChange={e => set('currency', e.target.value)}
-              className="w-full border border-gray-200 rounded-xl bg-gray-50 text-sm px-3 py-2.5 outline-none focus:border-[#25D366] transition"
-              data-testid="product-currency"
-            >
-              {Object.entries(CURRENCY_SYMBOLS).map(([code, sym]) => (
-                <option key={code} value={code}>{code} — {sym}</option>
-              ))}
-            </select>
-          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Prix</label>
-              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" placeholder="0.00" />
+              <label className="text-sm text-gray-500 mb-1 block">Prix ($)</label>
+              <input type="number" step="0.01" min="0.01" value={form.price} onChange={e => set('price', e.target.value)} className={fieldClass('price')} data-testid="product-price" />
               {fieldErrors.price && <p className="text-xs text-red-500 mt-1" data-testid="product-price-error">{fieldErrors.price}</p>}
             </div>
             <div>
@@ -260,6 +257,60 @@ function ProductDrawer({ product, onClose, onSaved }) {
               {fieldErrors.stock && <p className="text-xs text-red-500 mt-1" data-testid="product-stock-error">{fieldErrors.stock}</p>}
             </div>
           </div>
+
+          {/* Devise */}
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Devise</label>
+            <select value={form.currency} onChange={e => set('currency', e.target.value)}
+              className="w-full border border-gray-200 rounded-xl bg-gray-50 text-sm px-3 py-2.5 outline-none focus:border-[#25D366] transition"
+              data-testid="product-currency">
+              {Object.entries(CURRENCY_SYMBOLS).map(([code, sym]) => (
+                <option key={code} value={code}>{code} — {sym}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Prix promotionnel */}
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Prix promotionnel <span className="text-gray-400 text-xs">(optionnel — doit être inférieur au prix normal)</span></label>
+            <input
+              type="number" step="0.01" min="0.01"
+              value={form.promo_price}
+              onChange={e => set('promo_price', e.target.value)}
+              placeholder="Ex: 8.00"
+              className="w-full border border-gray-200 rounded-xl bg-gray-50 text-sm px-3 py-2.5 outline-none focus:border-[#25D366] transition"
+              data-testid="product-promo-price"
+            />
+            {form.promo_price && parseFloat(form.promo_price) >= parseFloat(form.price) && (
+              <p className="text-xs text-red-500 mt-1">Le prix promo doit être inférieur au prix normal</p>
+            )}
+          </div>
+
+          {/* Produit populaire — Premium uniquement */}
+          <div className={`flex items-center justify-between p-3 rounded-xl border transition ${vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra' ? 'border-gray-200 bg-gray-50' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+            <div>
+              <p className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-yellow-400" />
+                Produit populaire
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra'
+                  ? 'Apparaît dans l\'onglet "Populaires" de votre boutique'
+                  : '🔒 Fonctionnalité réservée au plan Premium'}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={vendor?.subscription_type !== 'premium' && vendor?.subscription_type !== 'extra'}
+              onClick={() => (vendor?.subscription_type === 'premium' || vendor?.subscription_type === 'extra') && set('is_featured', !form.is_featured)}
+              data-testid="product-featured-toggle"
+            >
+              {form.is_featured
+                ? <ToggleRight className="w-8 h-8 text-[#25D366]" />
+                : <ToggleLeft className="w-8 h-8 text-gray-300" />}
+            </button>
+          </div>
+
         </form>
         <div className="p-4 border-t border-gray-200 flex gap-3">
           <button type="button" onClick={onClose} className="btn-secondary flex-1 !text-sm">Annuler</button>

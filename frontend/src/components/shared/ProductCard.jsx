@@ -17,7 +17,8 @@ export default function ProductCard({ product, onWishlistToggle }) {
   const { t } = useLang();
   const img = product.images?.[0]?.cloudinary_url;
   const hasFlash = !!product.flash_sale;
-  const price = hasFlash ? product.flash_sale.discounted_price : product.price;
+  const hasPromo = !hasFlash && product.promo_price && product.promo_price < product.price;
+  const price = hasFlash ? product.flash_sale.discounted_price : hasPromo ? product.promo_price : product.price;
   const currency = product.currency || 'USD';
   const sym = CURRENCY_SYMBOLS[currency] ?? currency;
 
@@ -35,7 +36,9 @@ export default function ProductCard({ product, onWishlistToggle }) {
     <Link to={`/products/${product.id}`} className="group block glass overflow-hidden hover:border-[#25D366]/30 transition-all duration-300" data-testid={`product-card-${product.id}`}>
       <div className="relative aspect-square bg-gray-100 overflow-hidden">
         {img ? <img src={img} alt={product.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ShoppingBagIcon /></div>}
-        {hasFlash && <span className="absolute top-2 left-2 bg-red-500 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">FLASH</span>}
+        {hasFlash && <span className="absolute top-2 left-2 bg-red-500 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse text-white">FLASH</span>}
+        {hasPromo && !hasFlash && <span className="absolute top-2 left-2 bg-orange-500 text-xs font-bold px-2 py-0.5 rounded-full text-white">PROMO</span>}
+        {product.is_featured && !hasFlash && !hasPromo && <span className="absolute top-2 left-2 bg-yellow-400 text-xs font-bold px-2 py-0.5 rounded-full text-white">⭐ Populaire</span>}
         {product.vendor_sub && <span className={`absolute top-2 right-10 text-[10px] font-bold px-1.5 py-0.5 rounded ${product.vendor_sub === 'extra' ? 'bg-[#25D366]/20 text-[#25D366]' : product.vendor_sub === 'premium' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-100 text-gray-400'}`}>{product.vendor_sub?.toUpperCase()}</span>}
         {user && <button onClick={toggleWish} className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition"><Heart className={`w-4 h-4 ${product.wishlisted ? 'fill-red-500 text-red-500' : 'text-white'}`} /></button>}
       </div>
@@ -43,7 +46,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
         <p className="text-sm font-medium truncate group-hover:text-[#25D366] transition">{product.name}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-[#25D366] font-bold">{price?.toFixed(2)} {sym}</span>
-          {hasFlash && <span className="text-xs text-gray-500 line-through">{product.price?.toFixed(2)} {sym}</span>}
+          {(hasFlash || hasPromo) && <span className="text-xs text-gray-500 line-through">{product.price?.toFixed(2)} {sym}</span>}
         </div>
         {product.avg_rating > 0 && (
           <div className="flex items-center gap-1 mt-1">

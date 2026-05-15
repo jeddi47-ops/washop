@@ -17,12 +17,14 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearch, setMobileSearch] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [unread, setUnread] = useState(0);
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
   const userRef = useRef(null);
   const closeBtnRef = useRef(null);
 
@@ -66,7 +68,7 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   // Auto-close the mobile menu whenever the route changes.
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setMobileSearch(false); }, [location.pathname]);
 
   const handleSearch = (e) => { e.preventDefault(); if (query.trim()) { navigate(`/search?q=${encodeURIComponent(query.trim())}`); setShowSuggestions(false); setMobileOpen(false); } };
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'vendor' ? '/vendor/dashboard' : user?.role === 'employee' ? '/employee/claims' : '/client/dashboard';
@@ -93,14 +95,11 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2 ml-auto">
           {/* Comment ça marche — desktop only */}
-          <Link
-            to="/about"
-            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-[#25D366] hover:bg-gray-50 transition"
-            data-testid="nav-about"
-          >
+          <Link to="/about" className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-[#25D366] hover:bg-gray-50 transition" data-testid="nav-about">
             <HelpCircle className="w-4 h-4" />
             Comment ça marche
           </Link>
+
           <button onClick={toggleLang} className="p-2 rounded-lg hover:bg-gray-100 transition text-xs font-semibold flex items-center gap-1 text-gray-600" data-testid="lang-toggle">
             <Globe className="w-4 h-4" /> {lang.toUpperCase()}
           </button>
@@ -139,9 +138,42 @@ export default function Navbar() {
             </div>
           )}
 
+          {/* Mobile search toggle */}
+          <button onClick={() => setMobileSearch(!mobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Rechercher" data-testid="mobile-search-toggle">
+            {mobileSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+          </button>
+
           <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg hover:bg-gray-100" data-testid="mobile-menu-btn"><Menu className="w-5 h-5" /></button>
         </div>
       </div>
+
+      {/* Mobile search panel */}
+      {mobileSearch && (
+        <div className="md:hidden px-4 pb-3 pt-2 border-b border-gray-200 bg-white/95 backdrop-blur-lg" data-testid="mobile-search-panel">
+          <form onSubmit={(e) => { handleSearch(e); setMobileSearch(false); }} ref={mobileSearchRef} className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                autoFocus
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Rechercher un produit..."
+                className="!pl-10 !py-2.5 !text-sm !bg-gray-50 !border-gray-200 !rounded-full w-full !text-gray-900"
+                data-testid="mobile-search-bar-input"
+              />
+            </div>
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-lg z-10">
+                {suggestions.map((s, i) => (
+                  <button key={i} type="button" onClick={() => { setQuery(s); navigate(`/search?q=${encodeURIComponent(s)}`); setShowSuggestions(false); setMobileSearch(false); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">{s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </form>
+        </div>
+      )}
 
       {/* Mobile menu */}
       {/* ============ MOBILE MENU ============ */}
@@ -155,15 +187,15 @@ export default function Navbar() {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+            className="absolute inset-0 bg-black/60 animate-fade-in"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
 
           {/* Drawer */}
           <aside
-            className="absolute left-0 top-0 bottom-0 w-[88%] max-w-sm shadow-2xl flex flex-col animate-slide-left"
-            style={{ backgroundColor: '#ffffff', backdropFilter: 'none' }}
+            className="absolute left-0 top-0 bottom-0 w-[88%] max-w-sm flex flex-col animate-slide-left"
+            style={{ backgroundColor: '#ffffff', backdropFilter: 'none', boxShadow: '4px 0 32px rgba(0,0,0,0.25)', borderRight: '2px solid #25D366' }}
           >
             {/* HEADER */}
             <div
@@ -227,7 +259,7 @@ export default function Navbar() {
               <NavSection title="Découvrir">
                 <NavItem to="/" icon={Home} label="Accueil" pathname={location.pathname} onClick={() => setMobileOpen(false)} testid="mobile-nav-home" />
                 <NavItem to="/#catalog" icon={Sparkles} label="Catalogue" onClick={() => setMobileOpen(false)} testid="mobile-nav-catalog" />
-                <NavItem to="/about" icon={HelpCircle} label="Comment ça marche" pathname={location.pathname} onClick={() => setMobileOpen(false)} testid="mobile-nav-about" />
+                <NavItem to="/about" icon={Info} label="À propos" pathname={location.pathname} onClick={() => setMobileOpen(false)} testid="mobile-nav-about" />
               </NavSection>
 
               {/* Mon compte */}

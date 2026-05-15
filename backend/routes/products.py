@@ -17,13 +17,13 @@ router = APIRouter(prefix="/products", tags=["Produits"])
 
 
 async def check_product_quota(vendor_id: str, vendor_sub_type: str):
-    """Check if vendor can add more products (basic plan = max 15)."""
+    """Check if vendor can add more products (basic plan = max 30)."""
     if vendor_sub_type == "basic":
         count = await db.products.count_documents({"vendor_id": vendor_id, "deleted_at": None})
-        if count >= 15:
+        if count >= 30:
             raise HTTPException(
                 status_code=403,
-                detail="Limite de 15 produits atteinte pour le plan basic. Passez au premium ou extra."
+                detail="Limite de 30 produits atteinte pour le plan Basic. Passez au Premium pour des produits illimités."
             )
 
 

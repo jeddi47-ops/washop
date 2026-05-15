@@ -178,7 +178,6 @@ class VendorResponse(BaseModel):
     whatsapp_number: str
     avatar_url: Optional[str] = None
     banner_url: Optional[str] = None
-    shop_theme: Optional[str] = None
     subscription_type: Optional[SubscriptionType] = None
     subscription_duration: Optional[SubscriptionDuration] = None
     subscription_started_at: Optional[datetime] = None
@@ -217,6 +216,7 @@ class ProductCreate(BaseModel):
     description: Optional[str] = Field(None, max_length=5000)
     price: float = Field(..., gt=0)
     currency: str = Field("USD", max_length=10)
+    promo_price: Optional[float] = Field(None, gt=0)
     stock: int = Field(..., ge=0)
     is_featured: bool = False
 
@@ -226,6 +226,7 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=5000)
     price: Optional[float] = Field(None, gt=0)
     currency: Optional[str] = Field(None, max_length=10)
+    promo_price: Optional[float] = Field(None, gt=0)
     stock: Optional[int] = Field(None, ge=0)
     is_featured: Optional[bool] = None
     is_active: Optional[bool] = None
@@ -239,6 +240,7 @@ class ProductResponse(BaseModel):
     description: Optional[str] = None
     price: float
     currency: str = "USD"
+    promo_price: Optional[float] = None
     stock: int
     is_featured: bool = False
     is_active: bool = True

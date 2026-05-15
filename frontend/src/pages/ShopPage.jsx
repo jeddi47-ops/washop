@@ -65,8 +65,8 @@ export default function ShopPage() {
     if (catFilter !== 'all') list = list.filter(p => p.category_id === catFilter);
     if (search.trim())       list = list.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
     if (section === 'new')   list = list.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    if (section === 'hot')   list = list.slice().sort((a, b) => (b.click_count || 0) - (a.click_count || 0));
-    if (section === 'promo') list = list.filter(p => p.flash_sale);
+    if (section === 'hot')   list = list.filter(p => p.is_featured);
+    if (section === 'promo') list = list.filter(p => p.promo_price && p.promo_price < p.price);
     return list;
   }, [prods, catFilter, search, section]);
 

@@ -45,7 +45,8 @@ export default function ProductDetail() {
 
   const images = product.images || [];
   const hasFlash = !!product.flash_sale;
-  const price = hasFlash ? product.flash_sale.discounted_price : product.price;
+  const hasPromo = !hasFlash && product.promo_price && product.promo_price < product.price;
+  const price = hasFlash ? product.flash_sale.discounted_price : hasPromo ? product.promo_price : product.price;
   const sym = CURRENCY_SYMBOLS[product?.currency] ?? product?.currency ?? '$';
   const inStock = product.stock > 0;
   const avgRating = pReviews.length > 0 ? (pReviews.reduce((s, r) => s + r.rating, 0) / pReviews.length) : 0;
@@ -81,6 +82,8 @@ export default function ProductDetail() {
                 <button onClick={() => setImgIdx(i => i < images.length - 1 ? i + 1 : 0)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition shadow"><ChevronRight className="w-4 h-4 text-gray-700" /></button>
               </>}
               {hasFlash && <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">-{product.flash_sale.discount_percentage}%</span>}
+              {hasPromo && <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">PROMO</span>}
+              {product.is_featured && !hasFlash && !hasPromo && <span className="absolute top-3 left-3 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full">⭐ Populaire</span>}
             </div>
             {images.length > 1 && <div className="flex gap-2 overflow-x-auto scrollbar-hide">{images.map((img, i) => <button key={i} onClick={() => setImgIdx(i)} className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${i === imgIdx ? 'border-[#25D366]' : 'border-gray-200'}`}><img src={img.cloudinary_url} alt="" className="w-full h-full object-cover" /></button>)}</div>}
           </div>
@@ -103,7 +106,7 @@ export default function ProductDetail() {
             </div>
             <div className="flex items-baseline gap-3 mb-4">
               <span className="text-3xl font-extrabold text-[#25D366]">{price?.toFixed(2)} {sym}</span>
-              {hasFlash && <span className="text-lg text-gray-400 line-through">{product.price?.toFixed(2)} {sym}</span>}
+              {(hasFlash || hasPromo) && <span className="text-lg text-gray-400 line-through">{product.price?.toFixed(2)} {sym}</span>}
             </div>
 
             {/* Vendor card */}

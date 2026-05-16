@@ -35,7 +35,7 @@ export default function VendorProducts() {
   };
 
   const isBasic = vendor?.subscription_type === 'basic';
-  const quota = isBasic ? 15 : Infinity;
+  const quota = isBasic ? 30 : Infinity;
   const count = items.length;
   const canAdd = count < quota;
 
@@ -58,7 +58,7 @@ export default function VendorProducts() {
               {count >= quota && <span className="text-xs text-red-400 font-semibold">Limite atteinte — Passez en Premium</span>}
             </div>
             <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${count >= 15 ? 'bg-red-500' : count >= 13 ? 'bg-yellow-500' : 'bg-[#25D366]'}`} style={{ width: `${Math.min(100, (count / quota) * 100)}%` }} />
+              <div className={`h-full rounded-full transition-all ${count >= quota ? 'bg-red-500' : count >= quota * 0.9 ? 'bg-yellow-500' : 'bg-[#25D366]'}`} style={{ width: `${Math.min(100, (count / quota) * 100)}%` }} />
             </div>
           </div>
         )}
@@ -99,12 +99,13 @@ export default function VendorProducts() {
       </div>
 
       {/* Product Drawer */}
-      {drawer && <ProductDrawer product={drawer === 'new' ? null : drawer} onClose={() => setDrawer(null)} onSaved={() => { setDrawer(null); fetch(); }} />}
+      {drawer && <ProductDrawer product={drawer === 'new' ? null : drawer} vendor={vendor} onClose={() => setDrawer(null)} onSaved={() => { setDrawer(null); fetch(); }} />}
     </div>
   );
 }
 
-function ProductDrawer({ product, onClose, onSaved }) {
+function ProductDrawer({ product, vendor, onClose, onSaved }) {
+  const isBasic = vendor?.subscription_type === 'basic' || !vendor?.subscription_type;
   const [cats, setCats] = useState([]);
   const [form, setForm] = useState({ name: '', category_id: '', description: '', price: '', currency: 'USD', promo_price: '', stock: '', is_active: true, is_featured: false });
   const [files, setFiles] = useState([]);
